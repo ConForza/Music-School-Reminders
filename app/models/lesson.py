@@ -8,3 +8,7 @@ class Lesson:
         self.category = category
         self.duration = duration
         self.payment = payment
+
+    def is_unpaid(self):
+        return not self.payment.is_paid
+
