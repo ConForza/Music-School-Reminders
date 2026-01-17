@@ -6,19 +6,20 @@ from app.config import ACUITY_USER_NAME
 from app.config import ACUITY_API_KEY
 from app.config import ACUITY_BASE_URL
 
+from app.data.staff_details import STAFF_MEMBERS
+
 import requests
 from datetime import datetime as dt
-
-headers = {
-        "accept": "application/json",
-        "content-type": "application/json"
-    }
 
 _students_by_email = {}
 
 
 def fetch_appointments_for_calendar(calendar_id):
     today_date = dt.now().strftime("%B %d, %Y")
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json"
+    }
 
     parameters = {
             "minDate": today_date,
@@ -65,10 +66,10 @@ def lesson_from_api(result):
 
     return lesson
 
-results = fetch_appointments_for_calendar("1802796")
-for result in results:
-    lesson_from_api(result)
+def fetch_students_for_staff(staff):
+    appointments = fetch_appointments_for_calendar(staff.calendar_id)
 
-print(_students_by_email['hug.jenny22@gmail.com'].lessons)
+    for result in appointments:
+        lesson_from_api(result)
 
-
+    return list(_students_by_email.values())

@@ -4,6 +4,9 @@ staff_details.json
 .DS_Store
 .idea/
 
+# Sensitive data
+app/data/staff_details.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
