@@ -6,16 +6,14 @@ from app.config import ACUITY_USER_NAME
 from app.config import ACUITY_API_KEY
 from app.config import ACUITY_BASE_URL
 
-from app.data.staff_details import STAFF_MEMBERS
-
 import requests
-from datetime import datetime as dt
+import datetime as dt
 
 _students_by_email = {}
 
 
 def fetch_appointments_for_calendar(calendar_id):
-    today_date = dt.now().strftime("%B %d, %Y")
+    today_date = (dt.datetime.now() + + dt.timedelta(days=1)).strftime("%B %d, %Y")
     headers = {
         "accept": "application/json",
         "content-type": "application/json"

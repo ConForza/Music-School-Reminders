@@ -9,5 +9,5 @@ class Lesson:
         self.payment = payment
 
     def is_unpaid(self):
-        return not self.payment.is_paid
+        return self.payment.is_paid == "no"
 

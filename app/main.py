@@ -5,4 +5,4 @@ for staff in STAFF_MEMBERS:
     students = fetch_students_for_staff(staff)
 
     for student in students:
-        print(student.email, len(student.lessons))
+        print(student.email, len(student.lessons), len(student.unpaid_lessons()))
