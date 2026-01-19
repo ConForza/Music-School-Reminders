@@ -5,9 +5,13 @@ class Student:
         self.surname = surname
         self.email = email
         self.lessons = []
+        self.certificates = []
 
     def add_lesson(self, lesson):
         self.lessons.append(lesson)
+
+    def add_certificate(self, certificate):
+        self.certificates.append(certificate)
 
     def unpaid_lessons(self):
         return [lesson for lesson in self.lessons if lesson.is_unpaid()]

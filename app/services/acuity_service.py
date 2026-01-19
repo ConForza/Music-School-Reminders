@@ -60,7 +60,7 @@ def lesson_from_api(result):
         payment=payment
     )
 
-    student.lessons.append(lesson)
+    student.add_lesson(lesson)
 
     return lesson
 
