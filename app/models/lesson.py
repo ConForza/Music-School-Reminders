@@ -9,11 +9,8 @@ class Lesson:
         self.payment = payment
 
     def is_paid(self):
-        return self.payment.is_paid == "yes"
+        return self.payment.is_paid()
 
-    def apply_certificate(self, certificate):
-        if certificate.apply_to_lesson(self):
-            self.payment.is_paid = "yes"
-            return True
-        return False
+    def is_unpaid(self):
+        return self.payment.is_unpaid()
 

@@ -2,9 +2,9 @@ from datetime import datetime as dt
 
 class Certificate:
 
-    def __init__(self, order_id, lesson_type, expiration_date, remaining_minutes):
+    def __init__(self, order_id, certificate_name, expiration_date, remaining_minutes):
         self.order_id = order_id
-        self.lesson_type = lesson_type
+        self.certificate_name = certificate_name
         self.expiration_date = expiration_date
         self.remaining_minutes = remaining_minutes
 
@@ -12,14 +12,25 @@ class Certificate:
         return dt.now() > self.expiration_date
 
     def matches_lesson(self, lesson):
-        return self.lesson_type in lesson.category
+        if lesson.duration == 30 and "30" in self.certificate_name:
+            return True
 
-    def can_cover(self, lesson):
-        return not self.is_expired() and self.matches_lesson(lesson) and self.remaining_minutes >= lesson.duration
+        if lesson.duration == 60 and "1 Hour" in self.certificate_name:
+            return True
 
-    def apply_to_lesson(self, lesson):
-        if not self.can_cover(lesson):
+        return False
+
+    def has_enough_minutes(self, lesson):
+        return self.remaining_minutes >= lesson.duration
+
+    def can_apply_to(self, lesson):
+        if self.is_expired():
             return False
 
-        self.remaining_minutes -= lesson.duration
+        if not self.matches_lesson(lesson):
+            return False
+
+        if not self.has_enough_minutes(lesson):
+            return False
+
         return True
