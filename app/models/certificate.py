@@ -1,15 +1,15 @@
-from datetime import datetime as dt
+from datetime import datetime, date
 
 class Certificate:
 
-    def __init__(self, order_id, certificate_name, expiration_date, remaining_minutes):
+    def __init__(self, order_id, certificate_name, expiration_date_raw, remaining_minutes):
         self.order_id = order_id
         self.certificate_name = certificate_name
-        self.expiration_date = expiration_date
+        self.expiration_date = datetime.strptime(expiration_date_raw, "%Y-%m-%d").date()
         self.remaining_minutes = remaining_minutes
 
     def is_expired(self):
-        return dt.now() > self.expiration_date
+        return date.today() > self.expiration_date
 
     def matches_lesson(self, lesson):
         if lesson.duration == 30 and "30" in self.certificate_name:

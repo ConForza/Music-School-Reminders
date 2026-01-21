@@ -8,8 +8,8 @@ import os
 API_URL = "https://acuityscheduling.com/api/v1/"
 DISCORD_API = os.environ.get("DISCORD_API")
 DISCORD_TOKEN = os.environ.get("DISCORD_TOKEN")
-USER_NAME = os.environ.get("USER_NAME")
-API_KEY = os.environ.get("API_KEY")
+USER_NAME = os.environ.get("ACUITY_USER_NAME")
+API_KEY = os.environ.get("ACUITY_API_KEY")
 
 # Headers for API verification
 headers = {
@@ -46,6 +46,7 @@ def get_appointments(from_date, to_date, client, staff):
     data = response("appointments", parameters)
 
     results = data.json()
+    print(results)
     # Store results in appointments array
     for result in results:
         appointments.append({
