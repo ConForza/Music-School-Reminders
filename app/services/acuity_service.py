@@ -10,14 +10,14 @@ import requests
 import datetime as dt
 
 _students_by_email = {}
-
-
-def fetch_appointments_for_calendar(calendar_id):
-    today_date = (dt.datetime.now() + + dt.timedelta(days=1)).strftime("%B %d, %Y")
-    headers = {
+headers = {
         "accept": "application/json",
         "content-type": "application/json"
     }
+
+
+def fetch_appointments_for_calendar(calendar_id):
+    today_date = (dt.datetime.now() + dt.timedelta(days=1)).strftime("%B %d, %Y")
 
     parameters = {
             "minDate": today_date,
@@ -48,7 +48,7 @@ def lesson_from_api(result):
     student = _students_by_email[email]
 
     payment = Payment(
-        is_paid=result["paid"]
+        is_paid_raw=result["paid"]
     )
 
     lesson = Lesson(
@@ -71,3 +71,32 @@ def fetch_students_for_staff(staff):
         lesson_from_api(result)
 
     return list(_students_by_email.values())
+
+def fetch_certificates_for_student(student):
+    parameters = {
+        "email": student.email,
+    }
+
+    response = requests.get(
+        url=f"{ACUITY_BASE_URL}/certificates",
+        auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
+        params=parameters,
+        headers=headers
+    )
+
+def apply_certificate_to_lesson(order_id, lesson_id):
+    # parameters = {
+    #     "certificate": order_id,
+    # }
+    #
+    # response = requests.put(url=f"{ACUITY_BASE_URL}/appointments/{lesson_id}?admin=true", auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
+    #                      json=parameters, headers=headers)
+    #
+    # if response.status_code == 200:
+    #     return True
+    # else:
+    #     print("API error:", response.status_code, response.text)
+    #     return False
+
+    print(f"[API STUB] Applying certificate {order_id} to lesson {lesson_id}")
+    return True

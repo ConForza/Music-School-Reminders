@@ -1,83 +1,87 @@
-from datetime import datetime, timedelta
-
-from app.models.payment import Payment
-from app.models.lesson import Lesson
 from app.models.student import Student
+from app.models.lesson import Lesson
+from app.models.payment import Payment
 from app.models.certificate import Certificate
 from app.services.certificate_service import CertificateService
 
-# Create student
+# ---- Create a student ----
+
 student = Student(
-    id_="stu_001",
+    id_=1,
     first_name="Gary",
     surname="O'Shea",
     email="gary@example.com"
 )
 
-# Create lessons
+# ---- Create lessons ----
+
 lesson1 = Lesson(
-    id_="lesson_001",
-    date=datetime.now(),
+    id_=101,
+    date="2026-01-22T10:00:00",
     type_="Piano",
-    category="Piano 30",
+    category="30 Minute Lesson",
     duration=30,
-    payment=Payment("no")
+    payment=Payment(is_paid_raw="no")
 )
 
 lesson2 = Lesson(
-    id_="lesson_002",
-    date=datetime.now(),
+    id_=102,
+    date="2026-01-22T11:00:00",
     type_="Piano",
-    category="Piano 30",
+    category="1 Hour Lesson",
     duration=60,
-    payment=Payment("yes")
+    payment=Payment(is_paid_raw="no")
+)
+
+lesson3 = Lesson(
+    id_=103,
+    date="2026-01-22T12:00:00",
+    type_="Piano",
+    category="30 Minute Lesson",
+    duration=30,
+    payment=Payment(is_paid_raw="yes")   # already paid
 )
 
 student.add_lesson(lesson1)
 student.add_lesson(lesson2)
+student.add_lesson(lesson3)
 
-# Create certificates
+# ---- Create certificates ----
+
+# Valid for 30 min, expires soon
 cert1 = Certificate(
-    order_id="cert_001",
-    certificate_name="30 Minute Lesson Pack",
-    expiration_date_raw="2026-01-30",
+    order_id="CERT-001",
+    certificate_name="30 Minute Lessons",
+    expiration_date_raw="2026-02-01",
     remaining_minutes=150
 )
 
+# Valid for 1 hour, expires later
 cert2 = Certificate(
-    order_id="cert_002",
-    certificate_name="30 Minute Lesson Pack",
-    expiration_date_raw="2026-01-22",
-    remaining_minutes=150
+    order_id="CERT-002",
+    certificate_name="1 Hour Lessons",
+    expiration_date_raw="2026-06-01",
+    remaining_minutes=300
 )
 
+# Expired certificate (should never be used)
 cert3 = Certificate(
-    order_id="cert_003",
-    certificate_name="30 Minute Lesson Pack",
-    expiration_date_raw="2026-01-21",
+    order_id="CERT-003",
+    certificate_name="30 Minute Lessons",
+    expiration_date_raw="2025-12-01",
     remaining_minutes=150
 )
-
 
 student.add_certificate(cert1)
 student.add_certificate(cert2)
 student.add_certificate(cert3)
 
-
-lesson = Lesson(
-    id_="lesson_002",
-    date=datetime.now(),
-    type_="Piano",
-    category="Piano 30",
-    duration=30,
-    payment=Payment("no")
-)
+# ---- Run certificate service ----
 
 service = CertificateService()
 
-chosen = service.select_certificate_for_lesson(student, lesson)
+results = service.apply_certificates_for_student(student)
 
-if chosen:
-    print("Chosen certificate:", chosen.order_id, "expires:", chosen.expiration_date)
-else:
-    print("No valid certificate found")
+print("\nFinal results:")
+for result in results:
+    print(result)
