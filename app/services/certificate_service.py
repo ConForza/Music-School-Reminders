@@ -20,16 +20,35 @@ class CertificateService:
         for lesson in student.unpaid_lessons():
             certificate = self.select_certificate_for_lesson(student, lesson)
             if certificate is None:
-                print("No valid certificate for lesson", lesson.id_)
-                break
-            success = acuity_service.apply_certificate_to_lesson(certificate.order_id, lesson.id_)
+                results.append({
+                    "lesson_id": lesson.id_,
+                    "lesson_date": lesson.date,
+                    "duration": lesson.duration,
+                    "status": "no_valid_certificate"
+                })
+                continue
+
+            success, remaining_minutes = acuity_service.apply_certificate_to_lesson(certificate.order_id, lesson.id_)
+
             if success:
-                print(f"Applied certificate {certificate.order_id} to {lesson.id_}")
-                results.append((lesson.id_, certificate.order_id))
+                results.append({
+                    "lesson_id": lesson.id_,
+                    "lesson_date": lesson.date,
+                    "duration": lesson.duration,
+                    "status": "applied",
+                    "certificate_id": certificate.order_id,
+                    "remaining_minutes": remaining_minutes
+                })
                 continue
             else:
-                print("Failed to apply certificate to lesson", lesson.id_)
-                break
+                results.append({
+                    "lesson_id": lesson.id_,
+                    "lesson_date": lesson.date,
+                    "duration": lesson.duration,
+                    "status": "api_failed",
+                    "certificate_id": certificate.order_id
+                })
+                continue
 
         return results
 

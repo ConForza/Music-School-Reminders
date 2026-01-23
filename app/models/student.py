@@ -15,7 +15,8 @@ class Student:
         self.certificates.append(certificate)
 
     def unpaid_lessons(self):
-        return [lesson for lesson in self.lessons if lesson.is_unpaid()]
+        unpaid = [lesson for lesson in self.lessons if lesson.is_unpaid()]
+        return sorted(unpaid, key=lambda l: l.date)
 
     def valid_certificates_for(self, lesson):
         return [certificate for certificate in self.certificates if certificate.can_apply_to(lesson)]

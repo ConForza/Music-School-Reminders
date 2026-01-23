@@ -99,4 +99,8 @@ def apply_certificate_to_lesson(order_id, lesson_id):
     #     return False
 
     print(f"[API STUB] Applying certificate {order_id} to lesson {lesson_id}")
-    return True
+
+    success = True
+    remaining_minutes = 120
+
+    return success, remaining_minutes

@@ -13,7 +13,7 @@ student = Student(
     email="gary@example.com"
 )
 
-# ---- Create lessons ----
+# ---- Create lessons (some unpaid, some paid) ----
 
 lesson1 = Lesson(
     id_=101,
@@ -82,6 +82,17 @@ service = CertificateService()
 
 results = service.apply_certificates_for_student(student)
 
-print("\nFinal results:")
-for result in results:
-    print(result)
+# ---- Print structured results ----
+
+print("\nFinal results:\n")
+
+for r in results:
+    if r["status"] == "applied":
+        print(f"Lesson {r['lesson_id']} → applied {r['certificate_id']} "
+              f"(remaining {r['remaining_minutes']} mins)")
+
+    elif r["status"] == "no_valid_certificate":
+        print(f"Lesson {r['lesson_id']} → no valid certificate")
+
+    elif r["status"] == "api_failed":
+        print(f"Lesson {r['lesson_id']} → API FAILED using {r['certificate_id']}")
