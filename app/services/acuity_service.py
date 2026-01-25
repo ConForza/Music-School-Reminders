@@ -1,6 +1,7 @@
 from app.models.student import Student
 from app.models.lesson import Lesson
 from app.models.payment import Payment
+from app.models.certificate import Certificate
 
 from app.config import ACUITY_USER_NAME
 from app.config import ACUITY_API_KEY
@@ -53,7 +54,7 @@ def lesson_from_api(result):
 
     lesson = Lesson(
         id_=result["id"],
-        date=result["datetime"],
+        date_raw=result["datetime"],
         type_=result["type"],
         category=result["category"],
         duration=result["duration"],
@@ -65,6 +66,7 @@ def lesson_from_api(result):
     return lesson
 
 def fetch_students_for_staff(staff):
+    _students_by_email.clear()
     appointments = fetch_appointments_for_calendar(staff.calendar_id)
 
     for result in appointments:
@@ -72,7 +74,18 @@ def fetch_students_for_staff(staff):
 
     return list(_students_by_email.values())
 
+def certificate_from_api(result):
+    certificate = Certificate(
+        order_id=result["certificate"],
+        certificate_name=result["name"],
+        expiration_date_raw=result["expiration"],
+        remaining_minutes=int(result["remainingMinutes"])
+    )
+
+    return certificate
+
 def fetch_certificates_for_student(student):
+    student.certificates.clear()
     parameters = {
         "email": student.email,
     }
@@ -83,6 +96,9 @@ def fetch_certificates_for_student(student):
         params=parameters,
         headers=headers
     )
+
+    for result in response.json():
+        student.add_certificate(certificate_from_api(result))
 
 def apply_certificate_to_lesson(order_id, lesson_id):
     # parameters = {
