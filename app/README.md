@@ -1,39 +1,92 @@
-# Music School Automation Engine
+# Music School Certificate Automation
 
-Backend automation system for managing lesson payments, certificates, and staff workflows
-for a music school using the Acuity Scheduling API and Discord bot integration.
+This project automates the application of prepaid lesson certificates to unpaid lessons using the Acuity Scheduling API, and produces structured daily reports for teaching staff.
 
----
+It is designed as the backend core of a future Discord / web application used by a music school to manage:
 
-## Certificate Application Engine
-
-Implements business logic for automatically applying prepaid lesson certificates
-to unpaid lessons, prioritising:
-
-- Oldest unpaid lessons first
-- Earliest-expiring certificates first
-- Lesson duration matching (30 / 60 mins)
-
-Includes:
-- Domain models (Student, Lesson, Certificate, Payment)
-- Service layer (CertificateService, AcuityService stub)
-- Structured reconciliation results for future Discord integration
+- Block lesson payments (certificates)
+- Unpaid lessons
+- Automatic certificate application
+- Daily staff summaries
 
 ---
 
-## Architecture
+## 🧩 Architecture
 
-- `models/` — Core domain entities (Student, Lesson, Certificate, Payment)
-- `services/` — Business logic and external API orchestration
-- `main.py` — Test harness for local validation
+The system is organised into clear layers:
 
-Designed with:
-- Clear separation of concerns  
-- Testable service layer  
-- Future integration with Discord slash commands and web UI  
+### Models
+- `Student`
+- `Lesson`
+- `Certificate`
+- `Payment`
+- `Staff`
+
+### Services
+- `AcuityService` – API boundary for appointments & certificates  
+- `CertificateService` – core orchestration logic  
+- `ReportService` – generates structured daily summaries  
+
+### Reports
+- `StaffDailyReport`
+- `StudentDailyReport`
 
 ---
 
-## Status
+## ⚙️ Core Flow
 
-In active development as part of a staged refactor of an existing production Discord bot
+1. Fetch students and unpaid lessons from Acuity  
+2. Fetch certificates per student  
+3. Sort unpaid lessons (oldest first)  
+4. Select certificates by:
+   - Earliest expiration  
+   - Valid lesson type  
+   - Sufficient remaining minutes  
+5. Apply certificates via API  
+6. Record success, failure, and unmatched lessons  
+7. Produce per-staff daily summaries  
+
+---
+
+## 📊 Example Output
+================ DAILY STAFF SUMMARY ================
+
+Staff: Teacher Name
+
+Student: API Failure (api@example.com)
+  ✔ Lesson 302 → CERT-020 (remaining 120 mins)
+  ⚠ Lesson 301 → API FAILED using CERT-020
+
+---
+
+## 🧪 Testing
+
+Currently uses stubbed API responses in `main.py` to simulate:
+
+- Successful application  
+- No valid certificates  
+- API failures  
+
+Pytest integration is planned for a later stage.
+
+---
+
+## 🚀 Future Work
+
+Planned extensions:
+
+- Integration with Discord bot commands (WMFBot)
+- Real Acuity API connection
+- Web interface (React + Python backend)
+- Staff authentication
+- Automated daily scheduled runs
+
+---
+
+## 👤 Author
+
+Built as part of a portfolio project focusing on:
+- Clean architecture  
+- Service-oriented design  
+- Real-world API workflows  
+- Robust failure handling  

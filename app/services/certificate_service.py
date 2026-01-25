@@ -1,4 +1,5 @@
 import app.services.acuity_service as acuity_service
+from app.models.lesson_result import LessonResult
 
 class CertificateService:
 
@@ -20,34 +21,34 @@ class CertificateService:
         for lesson in student.unpaid_lessons():
             certificate = self.select_certificate_for_lesson(student, lesson)
             if certificate is None:
-                results.append({
-                    "lesson_id": lesson.id_,
-                    "lesson_date": lesson.date,
-                    "duration": lesson.duration,
-                    "status": "no_valid_certificate"
-                })
+                results.append(LessonResult(
+                    lesson_id=lesson.id_,
+                    lesson_date=lesson.date,
+                    duration=lesson.duration,
+                    status="no_valid_certificate"
+                ))
                 continue
 
             success, remaining_minutes = acuity_service.apply_certificate_to_lesson(certificate.order_id, lesson.id_)
 
             if success:
-                results.append({
-                    "lesson_id": lesson.id_,
-                    "lesson_date": lesson.date,
-                    "duration": lesson.duration,
-                    "status": "applied",
-                    "certificate_id": certificate.order_id,
-                    "remaining_minutes": remaining_minutes
-                })
+                results.append(LessonResult(
+                    lesson_id=lesson.id_,
+                    lesson_date=lesson.date,
+                    duration=lesson.duration,
+                    status="applied",
+                    certificate_id=certificate.order_id,
+                    remaining_minutes=remaining_minutes
+                ))
                 continue
             else:
-                results.append({
-                    "lesson_id": lesson.id_,
-                    "lesson_date": lesson.date,
-                    "duration": lesson.duration,
-                    "status": "api_failed",
-                    "certificate_id": certificate.order_id
-                })
+                results.append(LessonResult(
+                    lesson_id=lesson.id_,
+                    lesson_date=lesson.date,
+                    duration=lesson.duration,
+                    status="api_failed",
+                    certificate_id=certificate.order_id,
+                ))
                 continue
 
         return results
