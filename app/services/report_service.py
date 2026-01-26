@@ -2,17 +2,6 @@ from app.reports.staff_daily_report import StaffDailyReport
 
 class ReportService:
 
-    def build_staff_report(self, staff, students_results):
-
-        report = StaffDailyReport(staff)
-
-        for student, results in students_results:
-            for result in results:
-                report.add_result(student, result)
-
-        return report
-
-
     def print_staff_report(self, staff_report):
 
         print("\n================ DAILY STAFF SUMMARY ================\n")

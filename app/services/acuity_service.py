@@ -100,7 +100,7 @@ def fetch_certificates_for_student(student):
     for result in response.json():
         student.add_certificate(certificate_from_api(result))
 
-def apply_certificate_to_lesson(order_id, lesson_id):
+def apply_certificate_to_lesson(order_id, lesson_id, preview=False):
     # parameters = {
     #     "certificate": order_id,
     # }
@@ -114,7 +114,10 @@ def apply_certificate_to_lesson(order_id, lesson_id):
     #     print("API error:", response.status_code, response.text)
     #     return False
 
-    print(f"[API STUB] Applying certificate {order_id} to lesson {lesson_id}")
+    if preview:
+        print(f"[PREVIEW] Would apply certificate {order_id} to lesson {lesson_id}")
+    else:
+        print(f"[API STUB] Applying certificate {order_id} to lesson {lesson_id}")
 
     success = True
     remaining_minutes = 120

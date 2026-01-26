@@ -10,3 +10,6 @@ class StaffDailyReport:
             self.students[student.email] = StudentDailyReport(student)
 
         self.students[student.email].add_result(result)
+
+    def has_results(self):
+        return len(self.students) > 0

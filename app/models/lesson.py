@@ -12,7 +12,7 @@ class Lesson:
 
         self.type_ = type_
         self.category = category
-        self.duration = duration
+        self.duration = int(duration)
         self.payment = payment
 
     @property

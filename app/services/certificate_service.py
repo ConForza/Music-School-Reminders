@@ -1,6 +1,7 @@
 import app.services.acuity_service as acuity_service
 from app.models.lesson_result import LessonResult
 
+
 class CertificateService:
 
     def select_certificate_for_lesson(self, student, lesson):
@@ -14,7 +15,7 @@ class CertificateService:
 
         return valid_certificates[0]
 
-    def apply_certificates_for_student(self, student):
+    def apply_certificates_for_student(self, student, preview=False):
 
         results = []
 
@@ -29,7 +30,11 @@ class CertificateService:
                 ))
                 continue
 
-            success, remaining_minutes = acuity_service.apply_certificate_to_lesson(certificate.order_id, lesson.id_)
+            success, remaining_minutes = acuity_service.apply_certificate_to_lesson(
+                certificate.order_id,
+                lesson.id_,
+                preview=preview
+            )
 
             if success:
                 results.append(LessonResult(
@@ -52,4 +57,3 @@ class CertificateService:
                 continue
 
         return results
-

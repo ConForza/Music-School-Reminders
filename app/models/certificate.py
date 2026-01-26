@@ -6,7 +6,7 @@ class Certificate:
         self.order_id = order_id
         self.certificate_name = certificate_name
         self.expiration_date = datetime.strptime(expiration_date_raw, "%Y-%m-%d").date()
-        self.remaining_minutes = remaining_minutes
+        self.remaining_minutes = int(remaining_minutes)
 
     def is_expired(self):
         return date.today() > self.expiration_date
