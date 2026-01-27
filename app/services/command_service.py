@@ -1,5 +1,6 @@
 from app.services.staff_service import StaffService
 from app.services.daily_runner_service import DailyRunnerService
+from app.models.command_result import CommandResult
 
 
 class CommandService:
@@ -16,6 +17,12 @@ class CommandService:
         staff = self.staff_service.get_staff_by_discord_id(discord_id)
 
         if staff is None:
-            return None
+            return CommandResult(
+                type_="RUN_STAFF",
+                content={},
+                errors=[f"No staff found for discord id {discord_id}"],
+                routing={"target": "admin"},
+                source=discord_id
+            )
 
         return self.runner.run_daily([staff], preview=preview)
