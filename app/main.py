@@ -1,27 +1,21 @@
 from app.services.command_service import CommandService
 from app.services.command_renderer import CommandRenderer
+from app.services.discord_service import DiscordService
+from app.models.command_request import CommandRequest
 
 print("\n===== RUN DAILY (PREVIEW MODE) =====\n")
 
 command_service = CommandService()
 renderer = CommandRenderer()
+discord_service = DiscordService()
 
-# Run the command
-result = command_service.run_all_staff(preview=True)
+command_request = CommandRequest(
+    command="run_all_staff",
+    source_id="discorduser123",
+    args={"preview": True},
+    routing={"channel": "4325643564", "guild": "246356745674567", "permissions": ["Administrator"]}
+)
 
-# Render into response
+result = command_service.receive_command(command_request)
 response = renderer.render(result)
-
-print("\n===== COMMAND RESPONSE =====\n")
-
-for msg in response.messages:
-    print(f"TO: {msg['to']}")
-    print("TYPE:", msg["type"])
-    print("BODY:")
-    print(msg["body"])
-    print("-" * 60)
-
-if response.errors:
-    print("\nErrors:")
-    for err in response.errors:
-        print(" -", err)
+discord_service.receive_response(response)

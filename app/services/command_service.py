@@ -9,6 +9,10 @@ class CommandService:
         self.staff_service = StaffService()
         self.runner = DailyRunnerService()
 
+    def receive_command(self, command_request):
+        if command_request.command == "run_all_staff":
+            return self.run_all_staff(preview=command_request.args["preview"])
+
     def run_all_staff(self, preview=False):
         staff_members = self.staff_service.get_all_staff()
         return self.runner.run_daily(staff_members, preview=preview)
