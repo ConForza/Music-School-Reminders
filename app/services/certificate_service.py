@@ -57,3 +57,9 @@ class CertificateService:
                 continue
 
         return results
+
+    def create_block(self, staff_id: str, student_email: str, lesson_duration: int, quantity: int, preview: bool = False):
+        pass
+
+    def remaining_lessons(self, student_email: str):
+        pass
