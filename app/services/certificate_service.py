@@ -60,8 +60,23 @@ class CertificateService:
 
         return results
 
-    def create_block(self, staff_id: str, student_email: str, lesson_duration: int, quantity: int, preview: bool = False):
-        pass
+    def create_block(self, staff_id: str, student_email: str, lesson_duration: int, quantity: int, source, preview: bool = False):
+        routing = {
+            "target": "staff"
+        }
+
+        return CommandResult(
+            type_="CREATE_BLOCK",
+            content={
+                "student_email": student_email,
+                "staff_id": staff_id,
+                "lesson_duration": lesson_duration,
+                "quantity": quantity
+            },
+            errors=None,
+            routing=routing,
+            source=source
+        )
 
     def remaining_lessons(self, student_email: str, source):
 

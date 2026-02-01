@@ -15,6 +15,18 @@ class CommandRenderer:
         if result.type_ == "REMAINING_LESSONS":
             return self._render_remaining_lessons(result)
 
+        if result.type_ == "CREATE_BLOCK":
+            return self._render_create_block(result)
+
+        if result.type_ == "GENERATE_INVOICE":
+            return self._render_generate_invoice(result)
+
+        if result.type_ == "DELETE_ALL_LESSONS":
+            return self._render_delete_all_lessons(result)
+
+        if result.type_ == "DELETE_STUDENT_LESSONS":
+            return self._render_delete_student_lessons(result)
+
         raise ValueError(f"Unknown command type {result.type_}")
 
     def _render_run_daily(self, result):
@@ -50,9 +62,123 @@ class CommandRenderer:
     def _render_remaining_lessons(self, result):
         messages = []
 
-        student_email = result.content.get("student_email", [])
+        student_email = result.content.get("student_email")
 
         body = self.report_service.print_remaining_lessons(student_email)
+
+        messages.append({
+            "to": self._resolve_destination(result),
+            "body": body,
+            "type": "text"
+        })
+
+        if "admin" in result.routing["target"]:
+            messages.append({
+                "to": "admin",
+                "body": body,
+                "type": "text"
+            })
+
+        return CommandResponse(
+            messages=messages,
+            routing=result.routing,
+            errors=result.errors
+        )
+
+    def _render_create_block(self, result):
+        messages = []
+
+        staff_id = result.content.get("staff_id")
+        student_email = result.content.get("student_email")
+        lesson_duration = result.content.get("lesson_duration")
+        quantity = result.content.get("quantity")
+
+        body = self.report_service.print_block(staff_id, student_email, lesson_duration, quantity)
+
+        messages.append({
+            "to": self._resolve_destination(result),
+            "body": body,
+            "type": "text"
+        })
+
+        if "admin" in result.routing["target"]:
+            messages.append({
+                "to": "admin",
+                "body": body,
+                "type": "text"
+            })
+
+        return CommandResponse(
+            messages=messages,
+            routing=result.routing,
+            errors=result.errors
+        )
+
+    def _render_generate_invoice(self, result):
+        messages = []
+
+        staff_id = result.content.get("staff_id")
+        date_from = result.content.get("date_from")
+        date_to = result.content.get("date_to")
+
+        body = self.report_service.print_invoice(staff_id, date_from, date_to)
+
+        messages.append({
+            "to": self._resolve_destination(result),
+            "body": body,
+            "type": "text"
+        })
+
+        if "admin" in result.routing["target"]:
+            messages.append({
+                "to": "admin",
+                "body": body,
+                "type": "text"
+            })
+
+        return CommandResponse(
+            messages=messages,
+            routing=result.routing,
+            errors=result.errors
+        )
+
+    def _render_delete_all_lessons(self, result):
+        messages = []
+
+        staff_id = result.content.get("staff_id")
+        date_from = result.content.get("date_from")
+        date_to = result.content.get("date_to")
+
+        body = self.report_service.delete_all_lessons(staff_id, date_from, date_to)
+
+        messages.append({
+            "to": self._resolve_destination(result),
+            "body": body,
+            "type": "text"
+        })
+
+        if "admin" in result.routing["target"]:
+            messages.append({
+                "to": "admin",
+                "body": body,
+                "type": "text"
+            })
+
+        return CommandResponse(
+            messages=messages,
+            routing=result.routing,
+            errors=result.errors
+        )
+
+    def _render_delete_student_lessons(self, result):
+        messages = []
+
+        staff_id = result.content.get("staff_id")
+        student_email = result.content.get("student_email")
+        date_from = result.content.get("date_from")
+        date_to = result.content.get("date_to")
+
+        body = self.report_service.delete_student_lessons(staff_id, student_email, date_from, date_to)
 
         messages.append({
             "to": self._resolve_destination(result),

@@ -8,9 +8,9 @@ renderer = CommandRenderer()
 discord_service = DiscordService()
 
 command_request = CommandRequest(
-    command="remaining_lessons",
+    command="delete_student_lessons",
     source_id="discorduser123",
-    args={"preview": True, "student_email": "joe@bloggs.com"},
+    args={"preview": True, "staff_id": "John", "student_email": "joe@bloggs.com", "date_from": "01-01-26", "date_to": "01-02-26"},
     routing={"channel": "4325643564", "guild": "246356745674567", "permissions": ["Administrator"]}
 )
 
