@@ -3,16 +3,14 @@ from app.services.command_renderer import CommandRenderer
 from app.services.discord_service import DiscordService
 from app.models.command_request import CommandRequest
 
-print("\n===== RUN DAILY (PREVIEW MODE) =====\n")
-
 command_service = CommandService()
 renderer = CommandRenderer()
 discord_service = DiscordService()
 
 command_request = CommandRequest(
-    command="run_all_staff",
+    command="remaining_lessons",
     source_id="discorduser123",
-    args={"preview": True},
+    args={"preview": True, "student_email": "joe@bloggs.com"},
     routing={"channel": "4325643564", "guild": "246356745674567", "permissions": ["Administrator"]}
 )
 

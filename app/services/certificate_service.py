@@ -1,8 +1,10 @@
 import app.services.acuity_service as acuity_service
 from app.models.lesson_result import LessonResult
+from app.models.command_result import CommandResult
 
 
 class CertificateService:
+
 
     def select_certificate_for_lesson(self, student, lesson):
 
@@ -61,5 +63,18 @@ class CertificateService:
     def create_block(self, staff_id: str, student_email: str, lesson_duration: int, quantity: int, preview: bool = False):
         pass
 
-    def remaining_lessons(self, student_email: str):
-        pass
+    def remaining_lessons(self, student_email: str, source):
+
+        routing = {
+            "target": "staff"
+        }
+
+        return CommandResult(
+            type_="REMAINING_LESSONS",
+            content={
+                "student_email": student_email
+            },
+            errors=None,
+            routing=routing,
+            source=source
+        )

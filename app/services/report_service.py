@@ -25,3 +25,6 @@ class ReportService:
                     report += f"  ⚠ Lesson {r.lesson_id} → API FAILED using {r.certificate_id}\n"
 
         return report
+
+    def print_remaining_lessons(self, student_email):
+        return f"There are n lessons remaining for {student_email}"
