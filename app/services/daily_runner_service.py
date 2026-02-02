@@ -11,7 +11,7 @@ class DailyRunnerService:
         self.certificate_service = CertificateService()
         self.report_service = ReportService()
 
-    def run_daily(self, staff_members, preview=False):
+    def run_daily(self, staff_members, source=None, preview=False):
 
         staff_reports = []
         errors = []
@@ -43,5 +43,5 @@ class DailyRunnerService:
             },
             errors=errors,
             routing=routing,
-            source=None
+            source=source
         )

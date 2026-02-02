@@ -9,6 +9,9 @@ class CommandRenderer:
         self.report_service = ReportService()
 
     def render(self, result):
+        if result.errors:
+            return self._render_errors(result)
+
         if result.type_ == "RUN_DAILY":
             return self._render_run_daily(result)
 
@@ -28,6 +31,28 @@ class CommandRenderer:
             return self._render_delete_student_lessons(result)
 
         raise ValueError(f"Unknown command type {result.type_}")
+
+    def _render_errors(self, result):
+        routing = result.routing or {"target": "staff"}
+
+        if result.source:
+            to = result.source
+        else:
+            to = "admin"
+
+        body = "\n".join(result.errors)
+
+        messages = [{
+            "to": to,
+            "body": body,
+            "type": "text",
+        }]
+
+        return CommandResponse(
+            messages=messages,
+            routing=routing,
+            errors=result.errors
+        )
 
     def _render_run_daily(self, result):
         messages = []
