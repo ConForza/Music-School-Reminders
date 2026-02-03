@@ -1,4 +1,4 @@
-from app.services.command_service import CommandResult
+from app.models.command_result import CommandResult
 
 class AppointmentService:
 
@@ -12,7 +12,8 @@ class AppointmentService:
             content={
                 "date_from": date_from,
                 "date_to": date_to,
-                "staff_id": staff_id
+                "staff_id": staff_id,
+                "preview": preview
             },
             errors=None,
             routing=routing,
@@ -30,7 +31,8 @@ class AppointmentService:
                 "student_email": student_email,
                 "date_from": date_from,
                 "date_to": date_to,
-                "staff_id": staff_id
+                "staff_id": staff_id,
+                "preview": preview
             },
             errors=None,
             routing=routing,

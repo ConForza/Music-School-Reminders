@@ -1,12 +1,14 @@
 from app.models.command_result import CommandResult
 from app.models.command_definition import CommandDefinition
 from app.services.command_executor import CommandExecutor
+from app.services.audit_logger import AuditLogger
 
 
 class CommandService:
 
     def __init__(self):
         self.executor = CommandExecutor()
+        self.audit_logger = AuditLogger()
 
         self.registry = {
             "run_all_staff": CommandDefinition(
@@ -52,20 +54,26 @@ class CommandService:
         source = command_request.source_id
 
         if command not in self.registry:
-            return CommandResult(
+            result = CommandResult(
                 type_=command,
                 errors=["Invalid command."]
             )
+            self.audit_logger.log(command_request, result)
+            return result
 
         definition = self.registry[command]
 
-        error = self.validate_args(command, args, definition.required_args)
-        if error:
-            return error
+        error_result = self.validate_args(command, args, definition.required_args)
+        if error_result:
+            self.audit_logger.log(command_request, error_result)
+            return error_result
 
-        return definition.handler(
+        result = definition.handler(
             **{k: args[k] for k in definition.required_args},
             source=source,
             preview=args.get("preview", False)
         )
+
+        self.audit_logger.log(command_request, result)
+        return result
 

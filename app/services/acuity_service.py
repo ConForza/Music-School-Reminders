@@ -101,23 +101,22 @@ def fetch_certificates_for_student(student):
         student.add_certificate(certificate_from_api(result))
 
 def apply_certificate_to_lesson(order_id, lesson_id, preview=False):
-    # parameters = {
-    #     "certificate": order_id,
-    # }
-    #
-    # response = requests.put(url=f"{ACUITY_BASE_URL}/appointments/{lesson_id}?admin=true", auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
-    #                      json=parameters, headers=headers)
-    #
-    # if response.status_code == 200:
-    #     return True
-    # else:
-    #     print("API error:", response.status_code, response.text)
-    #     return False
-
     if preview:
         print(f"[PREVIEW] Would apply certificate {order_id} to lesson {lesson_id}")
     else:
         print(f"[API STUB] Applying certificate {order_id} to lesson {lesson_id}")
+        # parameters = {
+        #     "certificate": order_id,
+        # }
+        #
+        # response = requests.put(url=f"{ACUITY_BASE_URL}/appointments/{lesson_id}?admin=true", auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
+        #                      json=parameters, headers=headers)
+        #
+        # if response.status_code == 200:
+        #     return True
+        # else:
+        #     print("API error:", response.status_code, response.text)
+        #     return False
 
     success = True
     remaining_minutes = 120

@@ -29,11 +29,17 @@ class ReportService:
     def print_remaining_lessons(self, student_email):
         return f"There are n lessons remaining for {student_email}."
 
-    def print_block(self, staff_id, student_email, lesson_duration, quantity):
-        return f"{quantity} block/s of 5 * {lesson_duration}min lessons for {student_email} created by {staff_id}."
+    def print_block(self, staff_id, student_email, lesson_duration, quantity, preview):
+        header = "================ PREVIEW MODE ================\n" if preview else ""
+        action = "would be" if preview else ""
+        return f"{header}{quantity} block/s of 5 * {lesson_duration}min lessons for {student_email} {action} created by {staff_id}."
 
-    def print_invoice(self, staff_id, date_from, date_to):
-        invoice = f"""
+    def print_invoice(self, staff_id, date_from, date_to, preview):
+        if preview:
+            message = "================ PREVIEW MODE ================\n"
+        else:
+            message = ""
+        message += f"""
         ================ INVOICE ================
         for: {staff_id} from {date_from} to {date_to}
         
@@ -41,11 +47,20 @@ class ReportService:
         
         [TOTAL WILL GO HERE]
         """
+        return message
 
-        return invoice
+    def delete_all_lessons(self, staff_id, date_from, date_to, preview):
+        header = "================ PREVIEW MODE ================\n" if preview else ""
+        if preview:
+            action = "Would delete all lessons"
+        else:
+            action = "All lessons deleted"
+        return f"{header}{action} for {staff_id} from {date_from} to {date_to}."
 
-    def delete_all_lessons(self, staff_id, date_from, date_to):
-        return f"All lessons deleted for {staff_id} from {date_from} to {date_to}."
-
-    def delete_student_lessons(self, staff_id, student_email, date_from, date_to):
-        return f"{student_email} lessons deleted for {staff_id} from {date_from} to {date_to}."
+    def delete_student_lessons(self, staff_id, student_email, date_from, date_to, preview):
+        header = "================ PREVIEW MODE ================\n" if preview else ""
+        if preview:
+            action = f"Would delete all {student_email} lessons"
+        else:
+            action = f"All {student_email} lessons deleted"
+        return f"{header}{action} for {staff_id} from {date_from} to {date_to}."

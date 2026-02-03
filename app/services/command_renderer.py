@@ -117,8 +117,9 @@ class CommandRenderer:
         student_email = result.content.get("student_email")
         lesson_duration = result.content.get("lesson_duration")
         quantity = result.content.get("quantity")
+        preview = result.content.get("preview", False)
 
-        body = self.report_service.print_block(staff_id, student_email, lesson_duration, quantity)
+        body = self.report_service.print_block(staff_id, student_email, lesson_duration, quantity, preview)
 
         messages.append({
             "to": self._resolve_destination(result),
@@ -145,8 +146,9 @@ class CommandRenderer:
         staff_id = result.content.get("staff_id")
         date_from = result.content.get("date_from")
         date_to = result.content.get("date_to")
+        preview = result.content.get("preview", False)
 
-        body = self.report_service.print_invoice(staff_id, date_from, date_to)
+        body = self.report_service.print_invoice(staff_id, date_from, date_to, preview)
 
         messages.append({
             "to": self._resolve_destination(result),
@@ -173,8 +175,9 @@ class CommandRenderer:
         staff_id = result.content.get("staff_id")
         date_from = result.content.get("date_from")
         date_to = result.content.get("date_to")
+        preview = result.content.get("preview", False)
 
-        body = self.report_service.delete_all_lessons(staff_id, date_from, date_to)
+        body = self.report_service.delete_all_lessons(staff_id, date_from, date_to, preview)
 
         messages.append({
             "to": self._resolve_destination(result),
@@ -202,8 +205,9 @@ class CommandRenderer:
         student_email = result.content.get("student_email")
         date_from = result.content.get("date_from")
         date_to = result.content.get("date_to")
+        preview = result.content.get("preview", False)
 
-        body = self.report_service.delete_student_lessons(staff_id, student_email, date_from, date_to)
+        body = self.report_service.delete_student_lessons(staff_id, student_email, date_from, date_to, preview)
 
         messages.append({
             "to": self._resolve_destination(result),

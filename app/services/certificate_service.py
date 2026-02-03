@@ -71,7 +71,8 @@ class CertificateService:
                 "student_email": student_email,
                 "staff_id": staff_id,
                 "lesson_duration": lesson_duration,
-                "quantity": quantity
+                "quantity": quantity,
+                "preview": preview
             },
             errors=None,
             routing=routing,
