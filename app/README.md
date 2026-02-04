@@ -44,7 +44,9 @@ The system is organised into clear layers:
    - Sufficient remaining minutes  
 5. Apply certificates via API  
 6. Record success, failure, and unmatched lessons  
-7. Produce per-staff daily summaries  
+7. Produce per-staff daily summaries
+8. Create certificates, generate invoices, delete lessons via API
+9. All API calls live in AcuityService
 
 ---
 

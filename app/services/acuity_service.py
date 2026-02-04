@@ -1,8 +1,14 @@
+"""
+Execution boundary:
+- All real Acuity HTTP side-effects live here
+- preview=True MUST never mutate external state
+- All callers upstream must treat this as the final boundary
+"""
+
 from app.models.student import Student
 from app.models.lesson import Lesson
 from app.models.payment import Payment
 from app.models.certificate import Certificate
-
 from app.config import ACUITY_USER_NAME
 from app.config import ACUITY_API_KEY
 from app.config import ACUITY_BASE_URL

@@ -59,7 +59,7 @@ class CommandExecutor:
             source=source
         )
 
-    def run_staff_by_discord_id(self, discord_id, preview=False):
+    def run_staff_by_discord_id(self, discord_id, preview: bool=False):
         staff = self.staff_service.get_staff_by_discord_id(discord_id)
 
         if staff is None:
