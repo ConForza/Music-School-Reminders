@@ -5,3 +5,5 @@ from typing import Callable, List
 class CommandDefinition:
     required_args: List[str]
     handler: Callable
+    access: str
+    default_preview: bool=True

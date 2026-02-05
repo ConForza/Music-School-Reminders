@@ -1,5 +1,4 @@
 from app.models.command_response import CommandResponse
-from services.certificate_service import CertificateService
 from services.report_service import ReportService
 
 

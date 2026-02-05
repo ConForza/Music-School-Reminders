@@ -39,7 +39,8 @@ class CommandExecutor:
             student_email=student_email,
             lesson_duration=lesson_duration,
             quantity=quantity,
-            source=source
+            source=source,
+            preview=preview
         )
 
     def delete_all_lessons(self, staff_id, date_from, date_to, source, preview: bool=False):
@@ -47,7 +48,8 @@ class CommandExecutor:
             staff_id=staff_id,
             date_from=date_from,
             date_to=date_to,
-            source=source
+            source=source,
+            preview=preview
         )
 
     def delete_student_lessons(self, staff_id, student_email, date_from, date_to, source, preview: bool=False):
@@ -56,7 +58,8 @@ class CommandExecutor:
             student_email=student_email,
             date_from=date_from,
             date_to=date_to,
-            source=source
+            source=source,
+            preview=preview
         )
 
     def run_staff_by_discord_id(self, discord_id, preview: bool=False):

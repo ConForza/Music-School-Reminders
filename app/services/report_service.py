@@ -1,5 +1,8 @@
 class ReportService:
 
+    BANNER = "================ PREVIEW MODE ================\n" \
+                 "No changes have been made in Acuity.\n\n"
+
     def print_staff_report(self, staff_report):
 
         report = ""
@@ -30,13 +33,14 @@ class ReportService:
         return f"There are n lessons remaining for {student_email}."
 
     def print_block(self, staff_id, student_email, lesson_duration, quantity, preview):
-        header = "================ PREVIEW MODE ================\n" if preview else ""
+        header = ReportService.BANNER if preview else ""
         action = "would be" if preview else ""
         return f"{header}{quantity} block/s of 5 * {lesson_duration}min lessons for {student_email} {action} created by {staff_id}."
 
     def print_invoice(self, staff_id, date_from, date_to, preview):
         if preview:
-            message = "================ PREVIEW MODE ================\n"
+            message = "================ PREVIEW MODE ================\n" \
+                 "Invoices not submitted.\n\n"
         else:
             message = ""
         message += f"""
@@ -50,7 +54,7 @@ class ReportService:
         return message
 
     def delete_all_lessons(self, staff_id, date_from, date_to, preview):
-        header = "================ PREVIEW MODE ================\n" if preview else ""
+        header = ReportService.BANNER if preview else ""
         if preview:
             action = "Would delete all lessons"
         else:
@@ -58,7 +62,7 @@ class ReportService:
         return f"{header}{action} for {staff_id} from {date_from} to {date_to}."
 
     def delete_student_lessons(self, staff_id, student_email, date_from, date_to, preview):
-        header = "================ PREVIEW MODE ================\n" if preview else ""
+        header = ReportService.BANNER if preview else ""
         if preview:
             action = f"Would delete all {student_email} lessons"
         else:
