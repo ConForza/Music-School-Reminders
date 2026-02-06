@@ -1,159 +1,108 @@
-# app/main.py
-
 from app.services.command_service import CommandService
 from app.services.command_renderer import CommandRenderer
 from app.services.discord_service import DiscordService
-from app.models.command_request import CommandRequest
+from adapters.discord.discord_adapter import DiscordAdapter
+
+command_service = CommandService()
+renderer = CommandRenderer()
+discord_service = DiscordService()
+discord_adapter = DiscordAdapter()
 
 
-def run_test(title: str, command_request: CommandRequest,
-             command_service: CommandService,
-             renderer: CommandRenderer,
-             discord_service: DiscordService):
+def run_discord_sim(title: str, payload: dict):
     print(f"\n=========== {title} ===========\n")
 
-    # 1) Execute the command
+    # 1) Pretend Discord called us
+    command_request = discord_adapter.to_command_request(payload)
+
+    # 2) Pass into the existing command pipeline
     result = command_service.receive_command(command_request)
+
     print(f"CommandResult.type_: {result.type_}")
     print(f"CommandResult.errors: {result.errors}\n")
 
-    # 2) Render into messages
+    # 3) Render and "send" to Discord
     response = renderer.render(result)
-
-    # 3) “Send” via DiscordService (prints to console)
     discord_service.receive_response(response)
 
 
 if __name__ == "__main__":
-    command_service = CommandService()
-    renderer = CommandRenderer()
-    discord_service = DiscordService()
-
-    # Common routing contexts
-    admin_routing = {
-        "channel": "admin-channel-id",
-        "guild": "guild-id-123",
-        "permissions": ["Administrator"],
-    }
-
-    staff_routing = {
-        "channel": "staff-channel-id",
-        "guild": "guild-id-123",
-        "permissions": [],  # no Administrator flag
-    }
-
-    # 1) RUN ALL STAFF (PREVIEW, ADMIN)
-    req_run_all = CommandRequest(
-        command="run_all_staff",
-        source_id="discorduser_gary",
-        args={"preview": True},
-        routing=admin_routing,
-    )
-    run_test("RUN ALL STAFF (PREVIEW, ADMIN)",
-             req_run_all, command_service, renderer, discord_service)
-
-    # 2) RUN ALL STAFF (STAFF – should be blocked by access rules)
-    req_run_all_denied = CommandRequest(
-        command="run_all_staff",
-        source_id="discorduser_regular_staff",
-        args={"preview": True},
-        routing=staff_routing,
-    )
-    run_test("RUN ALL STAFF (DENIED – STAFF USER)",
-             req_run_all_denied, command_service, renderer, discord_service)
-
-    # 3) REMAINING LESSONS (STAFF)
-    req_remaining = CommandRequest(
-        command="remaining_lessons",
-        source_id="discorduser_gary",
-        args={"student_email": "student@example.com"},
-        routing=staff_routing,
-    )
-    run_test("REMAINING LESSONS",
-             req_remaining, command_service, renderer, discord_service)
-
-    # 4) GENERATE INVOICE (PREVIEW, STAFF – self only)
-    req_invoice = CommandRequest(
-        command="generate_invoice",
-        source_id="discorduser_gary",
-        args={
-            "staff_id": "Gary",
-            "date_from": "2026-01-01",
-            "date_to": "2026-01-31",
-            "preview": True,
+    # Example: /daily_report as an admin user
+    payload_daily = {
+        "command_name": "daily_report",
+        "user_id": "discorduser_gary",
+        "channel_id": "channel_123",
+        "guild_id": "guild_123",
+        "options": {
+            "preview": True
         },
-        routing=staff_routing,
-    )
-    run_test("GENERATE INVOICE (PREVIEW)",
-             req_invoice, command_service, renderer, discord_service)
+        "user_permissions": ["Administrator"],
+    }
 
-    # 5) CREATE BLOCK (PREVIEW)
-    req_block = CommandRequest(
-        command="create_block",
-        source_id="discorduser_gary",
-        args={
+    run_discord_sim("DISCORD /daily_report (preview, admin)", payload_daily)
+
+    # Example: /lessons_remaining student@example.com
+    payload_lessons = {
+        "command_name": "lessons_remaining",
+        "user_id": "discorduser_gary",
+        "channel_id": "channel_123",
+        "guild_id": "guild_123",
+        "options": {
+            "student_email": "student@example.com"
+        },
+        "user_permissions": [],  # staff, not admin
+    }
+
+    run_discord_sim("DISCORD /lessons_remaining", payload_lessons)
+
+    # Example: /create_block (preview)
+    payload_block = {
+        "command_name": "create_block",
+        "user_id": "discorduser_gary",
+        "channel_id": "channel_123",
+        "guild_id": "guild_123",
+        "options": {
             "staff_id": "Gary",
             "student_email": "student@example.com",
             "lesson_duration": 30,
             "quantity": 2,
             "preview": True,
         },
-        routing=staff_routing,
-    )
-    run_test("CREATE BLOCK (PREVIEW)",
-             req_block, command_service, renderer, discord_service)
+        "user_permissions": [],  # staff user, not admin
+    }
 
-    # 6) DELETE ALL LESSONS (PREVIEW)
-    req_delete_all = CommandRequest(
-        command="delete_all_lessons",
-        source_id="discorduser_gary",
-        args={
+    run_discord_sim("DISCORD /create_block (preview)", payload_block)
+
+    # Example: /delete_lesson_range (preview)
+    payload_delete_range = {
+        "command_name": "delete_lesson_range",
+        "user_id": "discorduser_gary",
+        "channel_id": "channel_123",
+        "guild_id": "guild_123",
+        "options": {
             "staff_id": "Gary",
             "date_from": "2026-01-01",
             "date_to": "2026-01-31",
             "preview": True,
         },
-        routing=staff_routing,
-    )
-    run_test("DELETE ALL LESSONS (PREVIEW)",
-             req_delete_all, command_service, renderer, discord_service)
+        "user_permissions": [],  # staff user, allowed for own calendar
+    }
 
-    # 7) DELETE STUDENT LESSONS (PREVIEW)
-    req_delete_student = CommandRequest(
-        command="delete_student_lessons",
-        source_id="discorduser_gary",
-        args={
+    run_discord_sim("DISCORD /delete_lesson_range (preview)", payload_delete_range)
+
+    payload_delete_student_lessons = {
+        "command_name": "delete_student_lessons",
+        "user_id": "discorduser_gary",
+        "channel_id": "channel_123",
+        "guild_id": "guild_123",
+        "options": {
+            "student_email": "joe@bloggs.com",
             "staff_id": "Gary",
-            "student_email": "student@example.com",
             "date_from": "2026-01-01",
             "date_to": "2026-01-31",
             "preview": True,
         },
-        routing=staff_routing,
-    )
-    run_test("DELETE STUDENT LESSONS (PREVIEW)",
-             req_delete_student, command_service, renderer, discord_service)
+        "user_permissions": [],  # staff user, allowed for own calendar
+    }
 
-    # 8) GENERATE INVOICE – MISSING ARG (should hit validate_args + error path)
-    req_invoice_bad = CommandRequest(
-        command="generate_invoice",
-        source_id="discorduser_gary",
-        args={
-            "staff_id": "Gary",
-            # missing 'date_from'
-            "date_to": "2026-01-31",
-        },
-        routing=staff_routing,
-    )
-    run_test("GENERATE INVOICE (MISSING ARGS)",
-             req_invoice_bad, command_service, renderer, discord_service)
-
-    # 9) INVALID COMMAND (should hit “Invalid command.” path)
-    req_invalid = CommandRequest(
-        command="fly_to_mars",
-        source_id="discorduser_gary",
-        args={},
-        routing=staff_routing,
-    )
-    run_test("INVALID COMMAND",
-             req_invalid, command_service, renderer, discord_service)
+    run_discord_sim("DISCORD /delete_student_lesson (preview)", payload_delete_student_lessons)

@@ -26,20 +26,23 @@ headers = {
 def fetch_appointments_for_calendar(calendar_id):
     today_date = (dt.datetime.now() + dt.timedelta(days=1)).strftime("%B %d, %Y")
 
-    parameters = {
-            "minDate": today_date,
-            "maxDate": today_date,
-            "calendarID": calendar_id
-        }
+    try:
+        parameters = {
+                "minDate": today_date,
+                "maxDate": today_date,
+                "calendarID": calendar_id
+            }
 
-    response = requests.get(
-            url=f"{ACUITY_BASE_URL}/appointments",
-            auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
-            params=parameters,
-            headers=headers
-        )
+        response = requests.get(
+                url=f"{ACUITY_BASE_URL}/appointments",
+                auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
+                params=parameters,
+                headers=headers
+            )
 
-    return response.json()
+        return True, response.json()
+    except Exception as e:
+        return False, str(e)
 
 
 def lesson_from_api(result):
@@ -73,8 +76,12 @@ def lesson_from_api(result):
 
 def fetch_students_for_staff(staff):
     _students_by_email.clear()
-    appointments = fetch_appointments_for_calendar(staff.calendar_id)
+    success, data_or_error = fetch_appointments_for_calendar(staff.calendar_id)
 
+    if not success:
+        raise RuntimeError(f"{staff.name}: {data_or_error}")
+
+    appointments = data_or_error
     for result in appointments:
         lesson_from_api(result)
 
@@ -92,24 +99,33 @@ def certificate_from_api(result):
 
 def fetch_certificates_for_student(student):
     student.certificates.clear()
+
     parameters = {
         "email": student.email,
     }
+    try:
+        response = requests.get(
+            url=f"{ACUITY_BASE_URL}/certificates",
+            auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
+            params=parameters,
+            headers=headers
+        )
 
-    response = requests.get(
-        url=f"{ACUITY_BASE_URL}/certificates",
-        auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
-        params=parameters,
-        headers=headers
-    )
+        response.raise_for_status()
 
-    for result in response.json():
-        student.add_certificate(certificate_from_api(result))
+        for result in response.json():
+            student.add_certificate(certificate_from_api(result))
+    except Exception as e:
+        print(f"[ACUITY ERROR] fetch_certificates_for_student({student.email}): {e}")
+
+
 
 def apply_certificate_to_lesson(order_id, lesson_id, preview=False):
     if preview:
         print(f"[PREVIEW] Would apply certificate {order_id} to lesson {lesson_id}")
-    else:
+        return True, 120
+
+    try:
         print(f"[API STUB] Applying certificate {order_id} to lesson {lesson_id}")
         # parameters = {
         #     "certificate": order_id,
@@ -117,14 +133,14 @@ def apply_certificate_to_lesson(order_id, lesson_id, preview=False):
         #
         # response = requests.put(url=f"{ACUITY_BASE_URL}/appointments/{lesson_id}?admin=true", auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
         #                      json=parameters, headers=headers)
+
+        # if response.status_code != 200:
+        #   return False f"API error: {response.status_code} {response.text}"
         #
-        # if response.status_code == 200:
-        #     return True
-        # else:
-        #     print("API error:", response.status_code, response.text)
-        #     return False
+        # remaining = response.json().get("remainingMinutes")
 
-    success = True
-    remaining_minutes = 120
+        remaining = 120
+        return True, remaining
+    except Exception as e:
+        return False, str(e)
 
-    return success, remaining_minutes
