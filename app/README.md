@@ -35,18 +35,19 @@ The system is organised into clear layers:
 
 ## ⚙️ Core Flow
 
-1. Fetch students and unpaid lessons from Acuity  
-2. Fetch certificates per student  
-3. Sort unpaid lessons (oldest first)  
-4. Select certificates by:
-   - Earliest expiration  
-   - Valid lesson type  
-   - Sufficient remaining minutes  
-5. Apply certificates via API  
-6. Record success, failure, and unmatched lessons  
-7. Produce per-staff daily summaries
-8. Create certificates, generate invoices, delete lessons via API
-9. All API calls live in AcuityService
+1.  Fetch students and unpaid lessons from Acuity  
+2.  Fetch certificates per student  
+3.  Sort unpaid lessons (oldest first)  
+4.  Select certificates by:
+    - Earliest expiration  
+    - Valid lesson type  
+    - Sufficient remaining minutes  
+5.  Apply certificates via API  
+6.  Record success, failure, and unmatched lessons  
+7.  Produce per-staff daily summaries
+8.  Create certificates, generate invoices, delete lessons via API 
+9.  All API calls live in AcuityService 
+10. Persistence layer planned using SQLite, implemented in Week 4 Day 7
 
 ---
 
