@@ -48,7 +48,6 @@
 #         "channel_id": "channel_123",
 #         "guild_id": "guild_123",
 #         "options": {
-#             "student_email": "student@example.com"
 #         },
 #         "user_permissions": [],  # staff, not admin
 #     }
@@ -94,7 +93,6 @@
 #         "command_name": "delete_student_lessons",
 #         "user_id": "discorduser_gary",
 #         "channel_id": "channel_123",
-#         "guild_id": "guild_123",
 #         "options": {
 #             "student_email": "joe@bloggs.com",
 #             "staff_id": "Gary",
@@ -106,16 +104,33 @@
 #     }
 #
 #     run_discord_sim("DISCORD /delete_student_lesson (preview)", payload_delete_student_lessons)
+from persistence.sqlite.audit_repository import AuditRepository
+from services.audit_logger import AuditLogger
 
-import sqlite3
+# import sqlite3
+#
+# conn = sqlite3.connect("audits.db")
+# c = conn.cursor()
+#
+# c.execute("SELECT id, timestamp, command, source_id, status FROM audit_logs")
+# rows = c.fetchall()
+#
+# for row in rows:
+#     print(row)
+#
+# conn.close()
 
-conn = sqlite3.connect("audits.db")
-c = conn.cursor()
+from services.audit_logger import AuditLogger
 
-c.execute("SELECT id, timestamp, command, source_id, status FROM audit_logs")
-rows = c.fetchall()
+from app.services.audit_logger import AuditLogger
 
-for row in rows:
-    print(row)
 
-conn.close()
+print("\n=========== RECENT AUDIT ERRORS ===========\n")
+audit_logger = AuditLogger()
+for exec in audit_logger.recent_errors(5):
+    print(f"[{exec.id}] {exec.timestamp} :: {exec.command} ({exec.status})")
+    print(f"  source={exec.source_id}")
+    print(f"  args={exec.args}")
+    if exec.errors:
+        print(f"  errors={exec.errors}")
+    print()
