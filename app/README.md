@@ -47,7 +47,7 @@ The system is organised into clear layers:
 7.  Produce per-staff daily summaries
 8.  Create certificates, generate invoices, delete lessons via API 
 9.  All API calls live in AcuityService 
-10. Persistence layer planned using SQLite, implemented in Week 4 Day 7
+10. Persistence layer using SQLite for audit logging
 
 ---
 

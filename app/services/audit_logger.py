@@ -1,9 +1,10 @@
+from app.persistence.sqlite.audit_repository import AuditRepository
 import json
 from datetime import datetime
 
 class AuditLogger:
-    def __init__(self, filepath: str = "audit.log"):
-        self.filepath = filepath
+    def __init__(self):
+        self.audit_repository = AuditRepository()
 
     def log(self, command_request, result):
         """
@@ -21,8 +22,7 @@ class AuditLogger:
             "status": self.status(result.errors)
         }
 
-        with open(self.filepath, "a") as f:
-            f.write(json.dumps(record) + "\n")
+        self.audit_repository.save(record)
 
     def status(self, errors):
         return "error" if errors else "ok"
