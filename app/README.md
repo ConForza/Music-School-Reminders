@@ -31,6 +31,20 @@ The system is organised into clear layers:
 - `StaffDailyReport`
 - `StudentDailyReport`
 
+### Database schema (SQLite)
+
+users
+- authentication and authorisation
+- linked to staff and audit logs
+
+staff
+- teaching and admin staff
+- linked to users (1–1)
+
+audit_logs
+- records all command executions
+- linked to users when available
+
 ---
 
 ## ⚙️ Core Flow

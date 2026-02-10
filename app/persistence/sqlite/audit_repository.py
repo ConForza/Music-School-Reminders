@@ -8,7 +8,7 @@ class AuditRepository:
 
     def __init__(self):
         self.connection = Connection()
-        self.connection.create_table()
+        self.connection.create_tables()
 
     def save(self, execution: CommandExecution) -> None:
         conn = self.connection.create_connection()
