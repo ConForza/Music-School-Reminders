@@ -2,7 +2,7 @@ import sqlite3
 
 class Connection:
 
-    def __init__(self, db_path: str = "main.db"):
+    def __init__(self, db_path: str = "music_school.db"):
         self.db_path = db_path
 
     def create_connection(self):
@@ -61,7 +61,7 @@ class Connection:
         c.execute("""CREATE TABLE IF NOT EXISTS audit_logs
                      (
                          id INTEGER PRIMARY KEY AUTOINCREMENT,
-                         user_id INTEGER,
+                         user_id INTEGER NULL,
                          timestamp TEXT NOT NULL,
                          command TEXT NOT NULL,
                          source_id TEXT NOT NULL,

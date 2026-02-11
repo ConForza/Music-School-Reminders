@@ -44,6 +44,9 @@ staff
 audit_logs
 - records all command executions
 - linked to users when available
+- status is 'ok' or 'error'
+- errors is JSON of error messages
+- args and routing are JSON blobs
 
 ---
 

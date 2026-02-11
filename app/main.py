@@ -125,12 +125,22 @@ from services.audit_logger import AuditLogger
 # from app.services.audit_logger import AuditLogger
 #
 #
-# print("\n=========== RECENT AUDIT ERRORS ===========\n")
-# audit_logger = AuditLogger()
-# for exec in audit_logger.recent_errors(5):
-#     print(f"[{exec.id}] {exec.timestamp} :: {exec.command} ({exec.status})")
-#     print(f"  source={exec.source_id}")
-#     print(f"  args={exec.args}")
-#     if exec.errors:
-#         print(f"  errors={exec.errors}")
-#     print()
+print("\n=========== RECENT AUDIT ERRORS ===========\n")
+audit_logger = AuditLogger()
+for exec in audit_logger.recent_errors(5):
+    print(f"[{exec.id}] {exec.timestamp} :: {exec.command} ({exec.status})")
+    print(f"  source={exec.source_id}")
+    print(f"  args={exec.args}")
+    if exec.errors:
+        print(f"  errors={exec.errors}")
+    print()
+
+audit_repository = AuditRepository()
+for exec in audit_repository.get_recent(5):
+    print(exec.id, exec.user_id, exec.command, exec.status)
+
+# from app.persistence.sqlite.audit_repository import AuditRepository
+#
+# repo = AuditRepository()
+# for exec in repo.get_recent_for_user(user_id=1, limit=5):
+#     print(exec.id, exec.command, exec.status)
