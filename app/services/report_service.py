@@ -1,7 +1,12 @@
+from app.persistence.sqlite.staff_repository import StaffRepository
+
 class ReportService:
 
     BANNER = "================ PREVIEW MODE ================\n" \
                  "No changes have been made in Acuity.\n\n"
+
+    def __init__(self):
+        self.staff_repository = StaffRepository()
 
     def print_staff_report(self, staff_report):
 
@@ -33,11 +38,13 @@ class ReportService:
         return f"There are n lessons remaining for {student_email}."
 
     def print_block(self, staff_id, student_email, lesson_duration, quantity, preview):
+        staff_name = self.staff_repository.get_name_by_staff_id(int(staff_id))
         header = ReportService.BANNER if preview else ""
         action = "would be" if preview else ""
-        return f"{header}{quantity} block/s of 5 * {lesson_duration}min lessons for {student_email} {action} created by {staff_id}."
+        return f"{header}{quantity} block/s of 5 * {lesson_duration}min lessons for {student_email} {action} created by {staff_name}."
 
     def print_invoice(self, staff_id, date_from, date_to, preview):
+        staff_name = self.staff_repository.get_name_by_staff_id(int(staff_id))
         if preview:
             message = "================ PREVIEW MODE ================\n" \
                  "Invoices not submitted.\n\n"
@@ -45,7 +52,7 @@ class ReportService:
             message = ""
         message += f"""
         ================ INVOICE ================
-        for: {staff_id} from {date_from} to {date_to}
+        for: {staff_name} from {date_from} to {date_to}
         
         [LESSONS WILL GO HERE]
         
@@ -54,17 +61,19 @@ class ReportService:
         return message
 
     def delete_all_lessons(self, staff_id, date_from, date_to, preview):
+        staff_name = self.staff_repository.get_name_by_staff_id(int(staff_id))
         header = ReportService.BANNER if preview else ""
         if preview:
-            action = "Would delete all lessons"
+            action = f"Would delete all lessons"
         else:
             action = "All lessons deleted"
-        return f"{header}{action} for {staff_id} from {date_from} to {date_to}."
+        return f"{header}{action} for {staff_name} from {date_from} to {date_to}."
 
     def delete_student_lessons(self, staff_id, student_email, date_from, date_to, preview):
+        staff_name = self.staff_repository.get_name_by_staff_id(int(staff_id))
         header = ReportService.BANNER if preview else ""
         if preview:
             action = f"Would delete all {student_email} lessons"
         else:
             action = f"All {student_email} lessons deleted"
-        return f"{header}{action} for {staff_id} from {date_from} to {date_to}."
+        return f"{header}{action} for {staff_name} from {date_from} to {date_to}."

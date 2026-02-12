@@ -2,6 +2,8 @@ from app.models.command_result import CommandResult
 from app.models.command_definition import CommandDefinition
 from app.services.command_executor import CommandExecutor
 from app.services.audit_logger import AuditLogger
+from app.persistence.sqlite.user_repository import UserRepository
+from app.persistence.sqlite.staff_repository import StaffRepository
 
 
 class CommandService:
@@ -9,6 +11,8 @@ class CommandService:
     def __init__(self):
         self.executor = CommandExecutor()
         self.audit_logger = AuditLogger()
+        self.user_repository = UserRepository()
+        self.staff_repository = StaffRepository()
 
         self.registry = {
             "run_all_staff": CommandDefinition(
@@ -44,13 +48,17 @@ class CommandService:
         }
 
     def _get_caller_context(self, command_request):
-        routing = command_request.routing or {}
-        permissions = routing.get("permissions", [])
-        is_admin = "Administrator" in permissions
+        user_id = self.user_repository.find_id_by_discord_id(command_request.source_id)
+
+        is_admin = False
+        if user_id is not None:
+            user = self.user_repository.get_is_admin_by_id(user_id)
+            is_admin = bool(user)
 
         return {
             "is_admin": is_admin,
-            "source_id": command_request.source_id
+            "source_id": command_request.source_id,
+            "user_id": user_id
         }
 
     def _check_access(self, command_name, definition, args, context):
@@ -66,10 +74,32 @@ class CommandService:
 
         if access == "staff_self_or_admin" and not context["is_admin"]:
             staff_id_arg = args.get("staff_id")
-            if staff_id_arg is None:
+            try:
+                staff_id_arg = int(staff_id_arg)
+            except (TypeError, ValueError):
                 return CommandResult(
                     type_=command_name,
-                    errors=["Argument missing: 'staff_id'"],
+                    errors=["Argument 'staff_id' must be an integer staff id"],
+                    routing={"target": "staff"},
+                    source=context["source_id"]
+                )
+
+            user_id = context.get("user_id")
+
+            if user_id is None:
+                return CommandResult(
+                    type_=command_name,
+                    errors=["Permission error: user not found"],
+                    routing={"target": "staff"},
+                    source=context["source_id"]
+                )
+
+            staff = self.staff_repository.get_by_user_id(user_id)
+
+            if staff is None or staff != staff_id_arg:
+                return CommandResult(
+                    type_=command_name,
+                    errors=["Permission error: staff_id does not belong to you"],
                     routing={"target": "staff"},
                     source=context["source_id"]
                 )
@@ -109,6 +139,7 @@ class CommandService:
 
         access_error = self._check_access(command, definition, args, context)
         if access_error:
+            self.audit_logger.log(command_request, access_error)
             return access_error
 
         preview = args.get("preview", definition.default_preview)
@@ -121,4 +152,3 @@ class CommandService:
 
         self.audit_logger.log(command_request, result)
         return result
-

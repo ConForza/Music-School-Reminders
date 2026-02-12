@@ -1,15 +1,14 @@
 from app.persistence.sqlite.connection import Connection
-from typing import Optional
 
+class StaffRepository:
 
-class UserRepository:
     def __init__(self):
         self.connection = Connection()
 
-    def find_id_by_discord_id(self, discord_id: str) -> Optional[int]:
+    def get_by_user_id(self, user_id: int) -> int | None:
         conn = self.connection.create_connection()
         c = conn.cursor()
-        c.execute("SELECT id FROM users WHERE discord_id = ?", (discord_id,))
+        c.execute("SELECT id FROM staff WHERE user_id = ?", (user_id,))
         row = c.fetchone()
         conn.close()
 
@@ -18,10 +17,10 @@ class UserRepository:
 
         return row[0]
 
-    def get_is_admin_by_id(self, user_id: int) -> Optional[int]:
+    def get_name_by_staff_id(self, staff_id: int) -> str | None:
         conn = self.connection.create_connection()
         c = conn.cursor()
-        c.execute("SELECT is_admin FROM users WHERE id = ?", (user_id,))
+        c.execute("SELECT first_name FROM staff WHERE id = ?", (staff_id,))
         row = c.fetchone()
         conn.close()
 

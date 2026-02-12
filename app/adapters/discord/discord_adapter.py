@@ -23,7 +23,6 @@ class DiscordAdapter:
         routing = {
             "channel": payload.get("channel_id"),
             "guild": payload.get("guild_id"),
-            "permissions": payload.get("user_permissions", [])
         }
 
         return CommandRequest(

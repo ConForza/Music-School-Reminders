@@ -24,7 +24,7 @@ headers = {
 
 
 def fetch_appointments_for_calendar(calendar_id):
-    today_date = (dt.datetime.now() + dt.timedelta(days=1)).strftime("%B %d, %Y")
+    today_date = (dt.datetime.now() + dt.timedelta(days=4)).strftime("%B %d, %Y")
 
     try:
         parameters = {
