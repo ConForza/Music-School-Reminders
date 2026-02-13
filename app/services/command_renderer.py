@@ -29,6 +29,15 @@ class CommandRenderer:
         if result.type_ == "DELETE_STUDENT_LESSONS":
             return self._render_delete_student_lessons(result)
 
+        if result.type_ == "AUDIT_RECENT":
+            return self._render_audit_recent(result)
+
+        if result.type_ == "AUDIT_ERRORS":
+            return self._render_audit_errors(result)
+
+        if result.type_ == "AUDIT_MINE":
+            return self._render_audit_mine(result)
+
         raise ValueError(f"Unknown command type {result.type_}")
 
     def _render_errors(self, result):
@@ -207,6 +216,84 @@ class CommandRenderer:
         preview = result.content.get("preview", False)
 
         body = self.report_service.delete_student_lessons(staff_id, student_email, date_from, date_to, preview)
+
+        messages.append({
+            "to": self._resolve_destination(result),
+            "body": body,
+            "type": "text"
+        })
+
+        if "admin" in result.routing["target"]:
+            messages.append({
+                "to": "admin",
+                "body": body,
+                "type": "text"
+            })
+
+        return CommandResponse(
+            messages=messages,
+            routing=result.routing,
+            errors=result.errors
+        )
+
+    def _render_audit_recent(self, result):
+        messages = []
+
+        results = result.content.get("results")
+
+        body = self.report_service.print_audit_recent(results)
+
+        messages.append({
+            "to": self._resolve_destination(result),
+            "body": body,
+            "type": "text"
+        })
+
+        if "admin" in result.routing["target"]:
+            messages.append({
+                "to": "admin",
+                "body": body,
+                "type": "text"
+            })
+
+        return CommandResponse(
+            messages=messages,
+            routing=result.routing,
+            errors=result.errors
+        )
+
+    def _render_audit_errors(self, result):
+        messages = []
+
+        results = result.content.get("results")
+
+        body = self.report_service.print_audit_errors(results)
+
+        messages.append({
+            "to": self._resolve_destination(result),
+            "body": body,
+            "type": "text"
+        })
+
+        if "admin" in result.routing["target"]:
+            messages.append({
+                "to": "admin",
+                "body": body,
+                "type": "text"
+            })
+
+        return CommandResponse(
+            messages=messages,
+            routing=result.routing,
+            errors=result.errors
+        )
+
+    def _render_audit_mine(self, result):
+        messages = []
+
+        results = result.content.get("results")
+
+        body = self.report_service.print_audit_mine(results)
 
         messages.append({
             "to": self._resolve_destination(result),

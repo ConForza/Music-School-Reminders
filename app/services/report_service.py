@@ -77,3 +77,27 @@ class ReportService:
         else:
             action = f"All {student_email} lessons deleted"
         return f"{header}{action} for {staff_name} from {date_from} to {date_to}."
+
+    def print_audit_recent(self, results):
+        message = ""
+
+        for result in results:
+            message += f"{result.id} user_id: {result.user_id} command: {result.command} status: {result.status}\n"
+
+        return message
+
+    def print_audit_errors(self, results):
+        message = ""
+
+        for result in results:
+            message += f"{result.id} user_id: {result.user_id} command: {result.command} errors: {result.errors}\n"
+
+        return message
+
+    def print_audit_mine(self, results):
+        message = ""
+
+        for result in results:
+            message += f"{result.id} command: {result.command} status: {result.status}\n"
+
+        return message

@@ -17,38 +17,62 @@ class CommandService:
         self.registry = {
             "run_all_staff": CommandDefinition(
                 required_args=[],
+                optional_args=[],
                 handler=self.executor.run_all_staff,
                 access="admin_only"
             ),
             "remaining_lessons": CommandDefinition(
                 required_args=["student_email"],
+                optional_args=[],
                 handler=self.executor.remaining_lessons,
                 access="staff_or_admin"
             ),
             "generate_invoice": CommandDefinition(
                 required_args=["staff_id", "date_from", "date_to"],
+                optional_args=[],
                 handler=self.executor.generate_invoice,
                 access="staff_self_or_admin"
             ),
             "create_block": CommandDefinition(
                 required_args=["staff_id", "student_email", "lesson_duration", "quantity"],
+                optional_args=[],
                 handler=self.executor.create_block,
                 access="staff_self_or_admin"
             ),
             "delete_all_lessons": CommandDefinition(
                 required_args=["staff_id", "date_from", "date_to"],
+                optional_args=[],
                 handler=self.executor.delete_all_lessons,
                 access="staff_self_or_admin"
             ),
             "delete_student_lessons": CommandDefinition(
                 required_args=["staff_id", "student_email", "date_from", "date_to"],
+                optional_args=[],
                 handler=self.executor.delete_student_lessons,
                 access="staff_self_or_admin"
+            ),
+            "audit_recent": CommandDefinition(
+                required_args=[],
+                optional_args=["limit"],
+                handler=self.executor.audit_recent,
+                access="admin_only"
+            ),
+            "audit_errors": CommandDefinition(
+                required_args=[],
+                optional_args=["limit"],
+                handler=self.executor.audit_errors,
+                access="admin_only"
+            ),
+            "audit_mine": CommandDefinition(
+                required_args=[],
+                optional_args=["limit"],
+                handler=self.executor.audit_mine,
+                access="staff_or_admin"
             )
         }
 
     def _get_caller_context(self, command_request):
-        user_id = self.user_repository.find_id_by_discord_id(command_request.source_id)
+        user_id = command_request.principal_id
 
         is_admin = False
         if user_id is not None:
@@ -71,6 +95,15 @@ class CommandService:
                 routing={"target": "staff"},
                 source=context["source_id"]
             )
+
+        if access == "staff_or_admin":
+            if context.get("user_id") is None:
+                return CommandResult(
+                    type_=command_name,
+                    errors=["Permission error: user not found"],
+                    routing={"target": "staff"},
+                    source=context["source_id"]
+                )
 
         if access == "staff_self_or_admin" and not context["is_admin"]:
             staff_id_arg = args.get("staff_id")
@@ -142,10 +175,32 @@ class CommandService:
             self.audit_logger.log(command_request, access_error)
             return access_error
 
+        opt_args = {k: v for k, v in args.items() if k in definition.optional_args}
+
+        if "limit" in definition.optional_args:
+            if "limit" in opt_args:
+                try:
+                    opt_args["limit"] = int(opt_args["limit"])
+                except (TypeError, ValueError):
+                    result = CommandResult(
+                        type_=command,
+                        errors=["Argument 'limit' must be an integer"],
+                        routing={"target": "staff"},
+                        source=context["source_id"]
+                    )
+                    self.audit_logger.log(command_request, result)
+                    return result
+            else:
+                opt_args["limit"] = 5
+
+            opt_args["limit"] = max(1, min(opt_args["limit"], 50))
+
         preview = args.get("preview", definition.default_preview)
 
         result = definition.handler(
             **{k: args[k] for k in definition.required_args},
+            **opt_args,
+            user_id=context["user_id"],
             source=context["source_id"],
             preview=preview
         )

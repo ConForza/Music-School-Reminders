@@ -1,7 +1,7 @@
 from app.persistence.sqlite.audit_repository import AuditRepository
-from models.command_execution import CommandExecution
+from app.models.command_execution import CommandExecution
+from app.models.command_result import CommandResult
 from datetime import datetime
-from typing import List
 
 from persistence.sqlite.user_repository import UserRepository
 
@@ -12,11 +12,9 @@ class AuditLogger:
         self.user_repository = UserRepository()
 
     def log(self, command_request, result):
-        user_id = self.user_repository.find_id_by_discord_id(command_request.source_id)
-
         command_execution = CommandExecution(
             id=None,
-            user_id=user_id,
+            user_id=command_request.principal_id,
             timestamp=datetime.now().isoformat(),
             command=command_request.command,
             source_id=command_request.source_id,
@@ -32,13 +30,52 @@ class AuditLogger:
     def status(self, errors):
         return "error" if errors else "ok"
 
-    def recent_executions(self, limit: int = 20) -> List[CommandExecution]:
-        return self.audit_repository.get_recent(limit)
+    def recent_executions(self, source, limit: int = 20):
+        results = self.audit_repository.get_recent(limit)
+        routing = {
+            "target": "admin"
+        }
 
-    def recent_errors(self, limit: int = 20) -> List[CommandExecution]:
-        return [
+        return CommandResult(
+            type_="AUDIT_RECENT",
+            content={
+                "results": results
+            },
+            routing=routing,
+            errors=None,
+            source=source
+        )
+
+    def recent_errors(self, source, limit: int = 20):
+        results = [
             e for e in self.audit_repository.get_recent(limit * 2) if e.status == "error"
         ][:limit]
 
-    def recent_for_user(self, user_id: int, limit: int = 20) -> List[CommandExecution]:
-        return self.audit_repository.get_recent_for_user(user_id, limit)
+        routing = {
+            "target": "admin"
+        }
+
+        return CommandResult(
+            type_="AUDIT_ERRORS",
+            content={
+                "results": results
+            },
+            routing=routing,
+            errors=None,
+            source=source
+        )
+
+    def recent_for_user(self, source, user_id, limit: int = 20):
+        results = self.audit_repository.get_recent_for_user(user_id, limit)
+        routing = {
+            "target": "staff"
+        }
+        return CommandResult(
+            type_="AUDIT_MINE",
+            content={
+                "results": results
+            },
+            routing=routing,
+            errors=None,
+            source=source
+        )
