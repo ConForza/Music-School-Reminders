@@ -71,6 +71,14 @@ class CommandService:
             )
         }
 
+    def _error_result(self, command_name, message, context, target="staff"):
+        return CommandResult(
+            type_=command_name,
+            errors=[message],
+            routing={"target": target},
+            source=context["source_id"]
+        )
+
     def _get_caller_context(self, command_request):
         user_id = command_request.principal_id
 
@@ -89,20 +97,18 @@ class CommandService:
         access = definition.access
 
         if access == "admin_only" and not context["is_admin"]:
-            return CommandResult(
-                type_=command_name,
-                errors=["You do not have permission to run this command."],
-                routing={"target": "staff"},
-                source=context["source_id"]
+            return self._error_result(
+                command_name,
+                "You do not have permission to run this command.",
+                context
             )
 
         if access == "staff_or_admin":
             if context.get("user_id") is None:
-                return CommandResult(
-                    type_=command_name,
-                    errors=["Permission error: user not found"],
-                    routing={"target": "staff"},
-                    source=context["source_id"]
+                return self._error_result(
+                    command_name,
+                    "Permission error: user not found",
+                    context
                 )
 
         if access == "staff_self_or_admin" and not context["is_admin"]:
@@ -110,31 +116,28 @@ class CommandService:
             try:
                 staff_id_arg = int(staff_id_arg)
             except (TypeError, ValueError):
-                return CommandResult(
-                    type_=command_name,
-                    errors=["Argument 'staff_id' must be an integer staff id"],
-                    routing={"target": "staff"},
-                    source=context["source_id"]
+                return self._error_result(
+                    command_name,
+                    "Argument 'staff_id' must be an integer staff id",
+                    context
                 )
 
             user_id = context.get("user_id")
 
             if user_id is None:
-                return CommandResult(
-                    type_=command_name,
-                    errors=["Permission error: user not found"],
-                    routing={"target": "staff"},
-                    source=context["source_id"]
+                return self._error_result(
+                    command_name,
+                    "Permission error: user not found",
+                    context
                 )
 
             staff = self.staff_repository.get_by_user_id(user_id)
 
             if staff is None or staff != staff_id_arg:
-                return CommandResult(
-                    type_=command_name,
-                    errors=["Permission error: staff_id does not belong to you"],
-                    routing={"target": "staff"},
-                    source=context["source_id"]
+                return self._error_result(
+                    command_name,
+                    "Permission error: staff_id does not belong to you",
+                    context
                 )
 
         return None
@@ -142,13 +145,30 @@ class CommandService:
     def validate_args(self, command, args, required_args: list):
         errors = []
         for arg in required_args:
-            if arg not in args:
+            if arg not in args or args[arg] is None:
                 errors.append(f"Argument missing: '{arg}'")
 
         if len(errors) > 0:
             return CommandResult(type_=command, errors=errors)
 
         return None
+
+    def _coerce_optional_args(self, command, definition, args, context):
+        opt_args = {k: v for k, v in args.items() if k in definition.optional_args}
+
+        if "limit" in opt_args:
+            try:
+                opt_args["limit"] = int(opt_args["limit"])
+            except (TypeError, ValueError):
+                return None, self._error_result(
+                    command,
+                    "Argument 'limit' must be an integer",
+                    context
+                )
+
+            opt_args["limit"] = max(1, min(opt_args["limit"], 50))
+
+        return opt_args, None
 
     def receive_command(self, command_request):
         command = command_request.command
@@ -175,25 +195,10 @@ class CommandService:
             self.audit_logger.log(command_request, access_error)
             return access_error
 
-        opt_args = {k: v for k, v in args.items() if k in definition.optional_args}
-
-        if "limit" in definition.optional_args:
-            if "limit" in opt_args:
-                try:
-                    opt_args["limit"] = int(opt_args["limit"])
-                except (TypeError, ValueError):
-                    result = CommandResult(
-                        type_=command,
-                        errors=["Argument 'limit' must be an integer"],
-                        routing={"target": "staff"},
-                        source=context["source_id"]
-                    )
-                    self.audit_logger.log(command_request, result)
-                    return result
-            else:
-                opt_args["limit"] = 5
-
-            opt_args["limit"] = max(1, min(opt_args["limit"], 50))
+        opt_args, opt_error = self._coerce_optional_args(command, definition, args, context)
+        if opt_error:
+            self.audit_logger.log(command_request, opt_error)
+            return opt_error
 
         preview = args.get("preview", definition.default_preview)
 

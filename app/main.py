@@ -173,6 +173,6 @@ if __name__ == "__main__":
         "command_name": "audit_mine",
         "user_id": "discord_staff",
         "options": {
-            "limit": 2
+            "limit": "banana"
         }
     }, "TEST 6 — (Admin) Recent Audit Logs")
