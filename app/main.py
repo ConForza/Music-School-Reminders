@@ -172,7 +172,4 @@ if __name__ == "__main__":
     simulate({
         "command_name": "audit_mine",
         "user_id": "discord_staff",
-        "options": {
-            "limit": "banana"
-        }
     }, "TEST 6 — (Admin) Recent Audit Logs")

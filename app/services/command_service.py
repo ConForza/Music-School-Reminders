@@ -113,6 +113,8 @@ class CommandService:
 
         if access == "staff_self_or_admin" and not context["is_admin"]:
             staff_id_arg = args.get("staff_id")
+            if staff_id_arg is None:
+                return self._error_result(command_name, "Argument missing: 'staff_id'", context)
             try:
                 staff_id_arg = int(staff_id_arg)
             except (TypeError, ValueError):
@@ -147,8 +149,12 @@ class CommandService:
         for arg in required_args:
             if arg not in args or args[arg] is None:
                 errors.append(f"Argument missing: '{arg}'")
+                continue
 
-        if len(errors) > 0:
+            if isinstance(args[arg],str) and args[arg].strip() == "":
+                errors.append(f"Argument missing: '{arg}'")
+
+        if errors:
             return CommandResult(type_=command, errors=errors)
 
         return None
@@ -156,15 +162,18 @@ class CommandService:
     def _coerce_optional_args(self, command, definition, args, context):
         opt_args = {k: v for k, v in args.items() if k in definition.optional_args}
 
-        if "limit" in opt_args:
-            try:
-                opt_args["limit"] = int(opt_args["limit"])
-            except (TypeError, ValueError):
-                return None, self._error_result(
-                    command,
-                    "Argument 'limit' must be an integer",
-                    context
-                )
+        if "limit" in definition.optional_args:
+            if "limit" in opt_args:
+                try:
+                    opt_args["limit"] = int(opt_args["limit"])
+                except (TypeError, ValueError):
+                    return None, self._error_result(
+                        command,
+                        "Argument 'limit' must be an integer",
+                        context
+                    )
+            else:
+                opt_args["limit"] = 5
 
             opt_args["limit"] = max(1, min(opt_args["limit"], 50))
 
