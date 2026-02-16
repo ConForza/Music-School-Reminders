@@ -6,3 +6,4 @@ ACUITY_BASE_URL = "https://acuityscheduling.com/api/v1"
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 DISCORD_API_URL = os.getenv("DISCORD_API_URL")
+TEST_TOKEN = os.getenv("TEST_TOKEN")

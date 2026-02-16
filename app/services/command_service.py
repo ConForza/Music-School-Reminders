@@ -151,7 +151,7 @@ class CommandService:
                 errors.append(f"Argument missing: '{arg}'")
                 continue
 
-            if isinstance(args[arg],str) and args[arg].strip() == "":
+            if isinstance(args[arg], str) and args[arg].strip() == "":
                 errors.append(f"Argument missing: '{arg}'")
 
         if errors:

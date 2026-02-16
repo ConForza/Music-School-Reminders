@@ -1,10 +1,3 @@
-"""
-Execution boundary:
-- All real Acuity HTTP side-effects live here
-- preview=True MUST never mutate external state
-- All callers upstream must treat this as the final boundary
-"""
-
 from app.models.student import Student
 from app.models.lesson import Lesson
 from app.models.payment import Payment
@@ -24,7 +17,7 @@ headers = {
 
 
 def fetch_appointments_for_calendar(calendar_id):
-    today_date = (dt.datetime.now() + dt.timedelta(days=4)).strftime("%B %d, %Y")
+    today_date = (dt.datetime.now() + dt.timedelta(days=1)).strftime("%B %d, %Y")
 
     try:
         parameters = {
