@@ -41,7 +41,7 @@ class ReportService:
         staff_name = self.staff_repository.get_name_by_staff_id(int(staff_id))
         header = ReportService.BANNER if preview else ""
         action = "would be" if preview else ""
-        return f"{header}{quantity} block/s of 5 * {lesson_duration}min lessons for {student_email} {action} created by {staff_name}."
+        return f"{header}{quantity} block(s) of 5 * {lesson_duration}min lessons for {student_email} {action} created for {staff_name}."
 
     def print_invoice(self, staff_id, date_from, date_to, preview):
         staff_name = self.staff_repository.get_name_by_staff_id(int(staff_id))

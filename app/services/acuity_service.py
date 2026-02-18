@@ -60,7 +60,9 @@ def lesson_from_api(result):
         type_=result["type"],
         category=result["category"],
         duration=result["duration"],
-        payment=payment
+        payment=payment,
+        appointment_type_id=result.get("appointmentTypeID"),
+        certificate_code=result.get("certificate")
     )
 
     student.add_lesson(lesson)
@@ -85,7 +87,8 @@ def certificate_from_api(result):
         order_id=result["certificate"],
         certificate_name=result["name"],
         expiration_date_raw=result["expiration"],
-        remaining_minutes=int(result["remainingMinutes"])
+        remaining_minutes=int(result["remainingMinutes"]),
+        appointment_type_ids=[int(x) for x in (result.get("appointmentTypeIDs") or [])]
     )
 
     return certificate

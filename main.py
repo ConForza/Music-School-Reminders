@@ -17,7 +17,7 @@ headers = {
     "content-type": "application/json"
 }
 
-today_date = datetime.now().strftime("%B %d, %Y")
+today_date = (datetime.now() + timedelta(days=6)).strftime("%B %d, %Y")
 
 
 # API response as function

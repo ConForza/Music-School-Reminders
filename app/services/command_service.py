@@ -34,8 +34,8 @@ class CommandService:
                 access="staff_self_or_admin"
             ),
             "create_block": CommandDefinition(
-                required_args=["staff_id", "student_email", "lesson_duration", "quantity"],
-                optional_args=[],
+                required_args=["student_email", "lesson_duration", "quantity"],
+                optional_args=["staff_id"],
                 handler=self.executor.create_block,
                 access="staff_self_or_admin"
             ),
@@ -177,7 +177,28 @@ class CommandService:
 
             opt_args["limit"] = max(1, min(opt_args["limit"], 50))
 
+        if "staff_id" in opt_args:
+            try:
+                opt_args["staff_id"] = int(opt_args["staff_id"])
+            except (TypeError, ValueError):
+                return None, self._error_result(command, "Argument 'staff_id must be an integer", context)
+
         return opt_args, None
+
+    def _resolve_default_staff_id(self, command, args, context):
+        if args.get("staff_id") is not None:
+            return None
+
+        user_id = context.get("user_id")
+        if user_id is None:
+            return self._error_result(command, "Permission error: user not found", context)
+
+        staff_id = self.staff_repository.get_by_user_id(user_id)
+        if staff_id is None:
+            return self._error_result(command, "Permission error: staff record not found for user", context)
+
+        args["staff_id"] = staff_id
+        return None
 
     def receive_command(self, command_request):
         command = command_request.command
@@ -198,6 +219,12 @@ class CommandService:
         if error:
             self.audit_logger.log(command_request, error)
             return error
+
+        if "staff_id" in definition.optional_args:
+            staff_default_error = self._resolve_default_staff_id(command, args, context)
+            if staff_default_error:
+                self.audit_logger.log(command_request, staff_default_error)
+                return staff_default_error
 
         access_error = self._check_access(command, definition, args, context)
         if access_error:

@@ -76,13 +76,6 @@ class CommandRenderer:
                 "type": "text"
             })
 
-            # if "admin" in result.routing["target"]:
-            #     messages.append({
-            #         "to": "admin",
-            #         "body": body,
-            #         "type": "text"
-            #     })
-
         return CommandResponse(
             messages=messages,
             routing=result.routing,
@@ -104,13 +97,6 @@ class CommandRenderer:
             "body": body,
             "type": "text"
         })
-
-        if "admin" in result.routing["target"]:
-            messages.append({
-                "to": "admin",
-                "body": body,
-                "type": "text"
-            })
 
         return CommandResponse(
             messages=messages,
@@ -135,13 +121,6 @@ class CommandRenderer:
             "type": "text"
         })
 
-        if "admin" in result.routing["target"]:
-            messages.append({
-                "to": "admin",
-                "body": body,
-                "type": "text"
-            })
-
         return CommandResponse(
             messages=messages,
             routing=result.routing,
@@ -164,13 +143,6 @@ class CommandRenderer:
             "type": "text"
         })
 
-        if "admin" in result.routing["target"]:
-            messages.append({
-                "to": "admin",
-                "body": body,
-                "type": "text"
-            })
-
         return CommandResponse(
             messages=messages,
             routing=result.routing,
@@ -192,13 +164,6 @@ class CommandRenderer:
             "body": body,
             "type": "text"
         })
-
-        if "admin" in result.routing["target"]:
-            messages.append({
-                "to": "admin",
-                "body": body,
-                "type": "text"
-            })
 
         return CommandResponse(
             messages=messages,
@@ -223,13 +188,6 @@ class CommandRenderer:
             "type": "text"
         })
 
-        if "admin" in result.routing["target"]:
-            messages.append({
-                "to": "admin",
-                "body": body,
-                "type": "text"
-            })
-
         return CommandResponse(
             messages=messages,
             routing=result.routing,
@@ -248,13 +206,6 @@ class CommandRenderer:
             "body": body,
             "type": "text"
         })
-
-        if "admin" in result.routing["target"]:
-            messages.append({
-                "to": "admin",
-                "body": body,
-                "type": "text"
-            })
 
         return CommandResponse(
             messages=messages,
@@ -275,13 +226,6 @@ class CommandRenderer:
             "type": "text"
         })
 
-        if "admin" in result.routing["target"]:
-            messages.append({
-                "to": "admin",
-                "body": body,
-                "type": "text"
-            })
-
         return CommandResponse(
             messages=messages,
             routing=result.routing,
@@ -300,13 +244,6 @@ class CommandRenderer:
             "body": body,
             "type": "text"
         })
-
-        if "admin" in result.routing["target"]:
-            messages.append({
-                "to": "admin",
-                "body": body,
-                "type": "text"
-            })
 
         return CommandResponse(
             messages=messages,
