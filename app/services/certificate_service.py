@@ -79,7 +79,32 @@ class CertificateService:
             source=source
         )
 
-    def remaining_lessons(self, student_email: str, source):
+    def remaining_lessons(self, student, instrument: str, appt_type_ids: dict, source):
+        id_30 = appt_type_ids.get("30")
+        id_60 = appt_type_ids.get("60")
+
+        id_30 = int(id_30) if id_30 is not None else None
+        id_60 = int(id_60) if id_60 is not None else None
+
+        print(id_30)
+        print(id_60)
+
+        minutes_30 = 0
+        minutes_60 = 0
+
+        for cert in student.certificates:
+            if cert.is_expired() or cert.remaining_minutes <= 0:
+                continue
+
+            ids = set(cert.appointment_type_ids or [])
+
+            if id_30 is not None and id_30 in ids:
+                minutes_30 += cert.remaining_minutes
+            if id_60 is not None and id_60 in ids:
+                minutes_60 += cert.remaining_minutes
+
+        lessons_30 = minutes_30 // 30
+        lessons_60 = minutes_60 // 60
 
         routing = {
             "target": "staff"
@@ -88,7 +113,10 @@ class CertificateService:
         return CommandResult(
             type_="REMAINING_LESSONS",
             content={
-                "student_email": student_email
+                "student_email": student.email,
+                "instrument": instrument,
+                "lessons_30": lessons_30,
+                "lessons_60": lessons_60,
             },
             errors=None,
             routing=routing,

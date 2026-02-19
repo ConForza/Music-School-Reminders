@@ -1,3 +1,5 @@
+from idlelib.pyshell import restart_line
+
 from app.models.command_response import CommandResponse
 from services.report_service import ReportService
 
@@ -89,8 +91,11 @@ class CommandRenderer:
         messages = []
 
         student_email = result.content.get("student_email")
+        instrument = result.content.get("instrument")
+        lessons_30 = result.content.get("lessons_30")
+        lessons_60 = result.content.get("lessons_60")
 
-        body = self.report_service.print_remaining_lessons(student_email)
+        body = self.report_service.print_remaining_lessons(student_email, instrument, lessons_30, lessons_60)
 
         messages.append({
             "to": self._resolve_destination(result),

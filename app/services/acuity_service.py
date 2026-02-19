@@ -17,7 +17,7 @@ headers = {
 
 
 def fetch_appointments_for_calendar(calendar_id):
-    today_date = (dt.datetime.now() + dt.timedelta(days=1)).strftime("%B %d, %Y")
+    today_date = (dt.datetime.now() + dt.timedelta(days=0)).strftime("%B %d, %Y")
 
     try:
         parameters = {
@@ -106,6 +106,7 @@ def fetch_certificates_for_student(student):
             params=parameters,
             headers=headers
         )
+        print(response.json())
 
         response.raise_for_status()
 

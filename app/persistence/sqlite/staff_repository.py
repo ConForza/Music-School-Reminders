@@ -1,4 +1,5 @@
 from app.persistence.sqlite.connection import Connection
+from app.models.staff import Staff
 
 class StaffRepository:
 
@@ -28,3 +29,24 @@ class StaffRepository:
             return None
 
         return row[0]
+
+    def get_all_staff(self) -> list[Staff]:
+        conn = self.connection.create_connection()
+        c = conn.cursor()
+        c.execute("""
+            SELECT id, user_id, first_name, surname, role, acuity_calendar_id
+            FROM staff
+            ORDER BY surname, first_name
+        """)
+        rows = c.fetchall()
+        return [
+            Staff(
+                id_=r["id"],
+                user_id=r["user_id"],
+                first_name=r["first_name"],
+                surname=r["surname"],
+                role=r["role"],
+                acuity_calendar_id=r["acuity_calendar_id"],
+            )
+            for r in rows
+        ]

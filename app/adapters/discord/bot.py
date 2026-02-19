@@ -134,8 +134,8 @@ async def audit_errors(interaction: discord.Interaction, limit: int = 5):
 
 
 @bot.tree.command(name="lessons_remaining", description="Check remaining lessons for a student")
-@app_commands.describe(student_email="Student email address")
-async def lessons_remaining(interaction: discord.Interaction, student_email: str):
+@app_commands.describe(student_email="Student email address", instrument="Student's instrument")
+async def lessons_remaining(interaction: discord.Interaction, student_email: str, instrument: str):
     await interaction.response.defer(thinking=True, ephemeral=True)
 
     payload = {
@@ -144,7 +144,8 @@ async def lessons_remaining(interaction: discord.Interaction, student_email: str
         "channel_id": str(interaction.channel_id),
         "guild_id": str(interaction.guild_id),
         "options": {
-            "student_email": student_email
+            "student_email": student_email,
+            "instrument": instrument
         }
     }
 
@@ -162,6 +163,7 @@ async def lessons_remaining(interaction: discord.Interaction, student_email: str
 async def create_block(
         interaction: discord.Interaction,
         student_email: str,
+        instrument: str,
         lesson_duration: int,
         quantity: int,
         staff_id: int | None = None,
@@ -170,10 +172,10 @@ async def create_block(
     await interaction.response.defer(thinking=True)
 
     options = {
-
         "student_email": student_email,
         "lesson_duration": lesson_duration,
         "quantity": quantity,
+        "instrument": instrument,
         "preview": preview,
     }
     if staff_id is not None:

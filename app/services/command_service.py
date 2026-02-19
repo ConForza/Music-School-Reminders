@@ -22,7 +22,7 @@ class CommandService:
                 access="admin_only"
             ),
             "remaining_lessons": CommandDefinition(
-                required_args=["student_email"],
+                required_args=["student_email", "instrument"],
                 optional_args=[],
                 handler=self.executor.remaining_lessons,
                 access="staff_or_admin"
@@ -34,7 +34,7 @@ class CommandService:
                 access="staff_self_or_admin"
             ),
             "create_block": CommandDefinition(
-                required_args=["student_email", "lesson_duration", "quantity"],
+                required_args=["student_email", "lesson_duration", "quantity", "instrument"],
                 optional_args=["staff_id"],
                 handler=self.executor.create_block,
                 access="staff_self_or_admin"
@@ -47,7 +47,7 @@ class CommandService:
             ),
             "delete_student_lessons": CommandDefinition(
                 required_args=["staff_id", "student_email", "date_from", "date_to"],
-                optional_args=[],
+                optional_args=["instrument"],
                 handler=self.executor.delete_student_lessons,
                 access="staff_self_or_admin"
             ),
@@ -199,6 +199,7 @@ class CommandService:
 
         args["staff_id"] = staff_id
         return None
+
 
     def receive_command(self, command_request):
         command = command_request.command

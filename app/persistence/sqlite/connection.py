@@ -6,7 +6,9 @@ class Connection:
         self.db_path = db_path
 
     def create_connection(self):
-        return sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        return conn
 
     def create_tables(self):
         conn = self.create_connection()
@@ -73,5 +75,17 @@ class Connection:
                          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
                      )
             """)
+
+        c.execute("""CREATE TABLE IF NOT EXISTS instruments
+                     (
+                         id INTEGER PRIMARY KEY AUTOINCREMENT,
+                         instrument TEXT,
+                         appointment_code INTEGER UNIQUE,
+                         duration INTEGER,
+                         certificate_code INTEGER UNIQUE,
+                         is_video_lesson INTEGER NOT NULL DEFAULT 0
+                     )
+                  """)
+
         conn.commit()
         conn.close()

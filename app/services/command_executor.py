@@ -1,24 +1,27 @@
-from app.services.staff_service import StaffService
+from app.persistence.sqlite.staff_repository import StaffRepository
 from app.services.daily_runner_service import DailyRunnerService
 from app.services.certificate_service import CertificateService
 from app.services.invoice_service import InvoiceService
 from app.services.appointment_service import AppointmentService
-from app.models.command_result import CommandResult
+from app.services.acuity_service import fetch_certificates_for_student
 from app.services.audit_logger import AuditLogger
+from app.models.student import Student
+from app.persistence.sqlite.instrument_repository import InstrumentRepository
 
 
 class CommandExecutor:
 
     def __init__(self):
-        self.staff_service = StaffService()
+        self.staff_repository = StaffRepository()
         self.runner = DailyRunnerService()
         self.certificate = CertificateService()
         self.invoice = InvoiceService()
         self.appointments = AppointmentService()
         self.audit_logger = AuditLogger()
+        self.instrument_repository = InstrumentRepository()
 
     def run_all_staff(self, source, user_id, preview: bool = False):
-        staff_members = self.staff_service.get_all_staff()
+        staff_members = self.staff_repository.get_all_staff()
         return self.runner.run_daily(staff_members, source=source, preview=preview)
 
     def generate_invoice(self, staff_id, date_from, date_to, source, user_id, preview: bool = False):
@@ -30,13 +33,19 @@ class CommandExecutor:
             preview=preview
         )
 
-    def remaining_lessons(self, student_email, source, user_id, preview: bool = False):
+    def remaining_lessons(self, student_email, instrument, source, user_id, preview: bool = False):
+        student = Student(first_name="", surname="", email=student_email)
+        fetch_certificates_for_student(student)
+        appt_type_ids = self.instrument_repository.get_in_person_appointment_type_ids(instrument)
+
         return self.certificate.remaining_lessons(
-            student_email=student_email,
+            student=student,
+            instrument=instrument,
+            appt_type_ids=appt_type_ids,
             source=source
         )
 
-    def create_block(self, staff_id, student_email, lesson_duration, quantity, source, user_id, preview: bool = False):
+    def create_block(self, staff_id, student_email, lesson_duration, quantity, instrument, source, user_id, preview: bool = False):
         return self.certificate.create_block(
             staff_id=staff_id,
             student_email=student_email,
@@ -55,7 +64,7 @@ class CommandExecutor:
             preview=preview
         )
 
-    def delete_student_lessons(self, staff_id, student_email, date_from, date_to, source, user_id,
+    def delete_student_lessons(self, staff_id, student_email, date_from, date_to, instrument, source, user_id,
                                preview: bool = False):
         return self.appointments.delete_student_lessons(
             staff_id=staff_id,
@@ -74,17 +83,3 @@ class CommandExecutor:
 
     def audit_mine(self, source, user_id, limit: int = 5, preview: bool = False):
         return self.audit_logger.recent_for_user(limit=limit, user_id=user_id, source=source)
-
-    def run_staff_by_discord_id(self, discord_id, user_id, preview: bool = False):
-        staff = self.staff_service.get_staff_by_discord_id(discord_id)
-
-        if staff is None:
-            return CommandResult(
-                type_="RUN_STAFF",
-                content={},
-                errors=[f"No staff found for discord id {discord_id}"],
-                routing={"target": "admin"},
-                source=discord_id
-            )
-
-        return self.runner.run_daily([staff], preview=preview)

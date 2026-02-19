@@ -34,8 +34,13 @@ class ReportService:
 
         return report
 
-    def print_remaining_lessons(self, student_email):
-        return f"There are n lessons remaining for {student_email}."
+    def print_remaining_lessons(self, student_email, instrument, lessons_30, lessons_60):
+        return (
+            f"**Remaining lessons for {student_email} ({instrument})\n"
+            f"–30 min: {lessons_30}\n"
+            f"–60 min: {lessons_60}"
+                )
+
 
     def print_block(self, staff_id, student_email, lesson_duration, quantity, preview):
         staff_name = self.staff_repository.get_name_by_staff_id(int(staff_id))
