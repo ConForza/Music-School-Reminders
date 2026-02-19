@@ -3,8 +3,9 @@ from app.services.daily_runner_service import DailyRunnerService
 from app.services.certificate_service import CertificateService
 from app.services.invoice_service import InvoiceService
 from app.services.appointment_service import AppointmentService
-from app.services.acuity_service import fetch_certificates_for_student
+from app.services.acuity_service import fetch_certificates_for_student, is_valid_email
 from app.services.audit_logger import AuditLogger
+from app.models.command_result import CommandResult
 from app.models.student import Student
 from app.persistence.sqlite.instrument_repository import InstrumentRepository
 
@@ -34,23 +35,139 @@ class CommandExecutor:
         )
 
     def remaining_lessons(self, student_email, instrument, source, user_id, preview: bool = False):
+        routing = {"target": "staff"}
+        instrument = instrument.strip()
+        student_email = student_email.strip().lower()
+
+        if not is_valid_email(student_email):
+            return CommandResult(
+                type_="REMAINING_LESSONS",
+                content={
+                    "student_email": student_email,
+                    "instrument": instrument,
+                },
+                errors=[
+                    "❌ Student email does not exist on Acuity."
+                ],
+                routing=routing,
+                source=source
+            )
+
+        if not self.instrument_repository.instrument_exists(instrument):
+            return CommandResult(
+                type_="REMAINING_LESSONS",
+                content={
+                    "student_email": student_email,
+                    "instrument": instrument,
+                },
+                errors=[
+                    "❌ Instrument not found. Please check your spelling."
+                ],
+                routing=routing,
+                source=source
+            )
+
+        appt_type_ids = self.instrument_repository.get_in_person_appointment_type_ids(instrument)
         student = Student(first_name="", surname="", email=student_email)
         fetch_certificates_for_student(student)
-        appt_type_ids = self.instrument_repository.get_in_person_appointment_type_ids(instrument)
 
         return self.certificate.remaining_lessons(
             student=student,
             instrument=instrument,
             appt_type_ids=appt_type_ids,
+            routing=routing,
             source=source
         )
 
     def create_block(self, staff_id, student_email, lesson_duration, quantity, instrument, source, user_id, preview: bool = False):
+        routing = {"target": "staff"}
+        student_email = student_email.strip.lower()
+        instrument = instrument.strip()
+        try:
+            lesson_duration_int = int(lesson_duration)
+            quantity_int = int(quantity)
+        except (TypeError, ValueError):
+            return CommandResult(
+                type_="CREATE_BLOCK",
+                content={},
+                errors=["❌ Lesson 'duration' and 'quantity' must be integers."],
+                routing=routing,
+                source=source
+            )
+
+        if not is_valid_email(student_email):
+            return CommandResult(
+                type_="CREATE_BLOCK",
+                content={},
+                errors=["❌ Student email does not exist on Acuity."],
+                routing=routing,
+                source=source
+            )
+
+        if lesson_duration_int not in (30, 60):
+            return CommandResult(
+                type_="CREATE_BLOCK",
+                content={},
+                errors=["❌ Lesson 'duration' must be either 30 or 60 minutes."],
+                routing=routing,
+                source=source
+            )
+
+        if quantity_int <= 0:
+            return CommandResult(
+                type_="CREATE_BLOCK",
+                content={},
+                errors=["❌ Quantity must be greater than zero."],
+                routing=routing,
+                source=source
+            )
+
+        if not self.instrument_repository.instrument_exists(instrument):
+            return CommandResult(
+                type_="CREATE_BLOCK",
+                content={
+                    "student_email": student_email,
+                    "staff_id": staff_id,
+                    "lesson_duration": lesson_duration_int,
+                    "instrument": instrument,
+                    "quantity": quantity_int,
+                    "preview": preview
+                },
+                errors=[
+                    "❌ Instrument not found. Please check your spelling."
+                ],
+                routing=routing,
+                source=source
+            )
+
+        cert_code = self.instrument_repository.get_certificate_code(instrument, lesson_duration_int)
+        if cert_code is None:
+            return CommandResult(
+                type_="CREATE_BLOCK",
+                content={
+                    "student_email": student_email,
+                    "staff_id": staff_id,
+                    "lesson_duration": lesson_duration_int,
+                    "instrument": instrument,
+                    "quantity": quantity_int,
+                    "preview": preview
+                },
+                errors=[
+                    f"❌ No certificate found for {instrument} {lesson_duration_int}min lessons. "
+                    f"Please check the instruments table."
+                ],
+                routing=routing,
+                source=source
+            )
+
         return self.certificate.create_block(
             staff_id=staff_id,
             student_email=student_email,
-            lesson_duration=lesson_duration,
-            quantity=quantity,
+            lesson_duration=lesson_duration_int,
+            quantity=quantity_int,
+            instrument=instrument,
+            cert_code=cert_code,
+            routing=routing,
             source=source,
             preview=preview
         )

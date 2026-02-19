@@ -116,9 +116,10 @@ class CommandRenderer:
         student_email = result.content.get("student_email")
         lesson_duration = result.content.get("lesson_duration")
         quantity = result.content.get("quantity")
+        instrument = result.content.get("instrument")
         preview = result.content.get("preview", False)
 
-        body = self.report_service.print_block(staff_id, student_email, lesson_duration, quantity, preview)
+        body = self.report_service.print_block(staff_id, student_email, lesson_duration, quantity, instrument, preview)
 
         messages.append({
             "to": self._resolve_destination(result),

@@ -41,12 +41,14 @@ class ReportService:
             f"–60 min: {lessons_60}"
                 )
 
-
-    def print_block(self, staff_id, student_email, lesson_duration, quantity, preview):
+    def print_block(self, staff_id, student_email, lesson_duration, quantity, instrument, preview):
         staff_name = self.staff_repository.get_name_by_staff_id(int(staff_id))
         header = ReportService.BANNER if preview else ""
         action = "would be" if preview else ""
-        return f"{header}{quantity} block(s) of 5 * {lesson_duration}min lessons for {student_email} {action} created for {staff_name}."
+        return (
+            f"{header}{quantity} block(s) of 5x{lesson_duration} min lessons "
+            f"for {student_email} ({instrument}) {action} created for {staff_name}."
+        )
 
     def print_invoice(self, staff_id, date_from, date_to, preview):
         staff_name = self.staff_repository.get_name_by_staff_id(int(staff_id))

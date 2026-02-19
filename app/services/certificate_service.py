@@ -5,7 +5,6 @@ from app.models.command_result import CommandResult
 
 class CertificateService:
 
-
     def select_certificate_for_lesson(self, student, lesson):
 
         valid_certificates = student.valid_certificates_for(lesson)
@@ -60,10 +59,28 @@ class CertificateService:
 
         return results
 
-    def create_block(self, staff_id: str, student_email: str, lesson_duration: int, quantity: int, source, preview: bool = False):
-        routing = {
-            "target": "staff"
-        }
+    def create_block(self, staff_id: int, student_email: str, lesson_duration: int, quantity: int, instrument: str,
+                     cert_code: int, routing, source, preview: bool = False):
+
+        success, error = acuity_service.create_certificates_for_student(cert_code, student_email, quantity, preview)
+        if success:
+            return CommandResult(
+                type_="CREATE_BLOCK",
+                content={
+                    "student_email": student_email,
+                    "staff_id": staff_id,
+                    "lesson_duration": lesson_duration,
+                    "instrument": instrument,
+                    "quantity": quantity,
+                    "preview": preview
+                },
+                errors=None,
+                routing=routing,
+                source=source
+            )
+
+
+        message = f"❌ Certificate creation failed: {error}." if error else "❌ Certificate creation failed for an unknown reason."
 
         return CommandResult(
             type_="CREATE_BLOCK",
@@ -71,23 +88,22 @@ class CertificateService:
                 "student_email": student_email,
                 "staff_id": staff_id,
                 "lesson_duration": lesson_duration,
+                "instrument": instrument,
                 "quantity": quantity,
                 "preview": preview
             },
-            errors=None,
+            errors=[message],
             routing=routing,
             source=source
         )
 
-    def remaining_lessons(self, student, instrument: str, appt_type_ids: dict, source):
+    def remaining_lessons(self, student, instrument: str, appt_type_ids: dict, routing, source):
+
         id_30 = appt_type_ids.get("30")
         id_60 = appt_type_ids.get("60")
 
         id_30 = int(id_30) if id_30 is not None else None
         id_60 = int(id_60) if id_60 is not None else None
-
-        print(id_30)
-        print(id_60)
 
         minutes_30 = 0
         minutes_60 = 0
@@ -105,10 +121,6 @@ class CertificateService:
 
         lessons_30 = minutes_30 // 30
         lessons_60 = minutes_60 // 60
-
-        routing = {
-            "target": "staff"
-        }
 
         return CommandResult(
             type_="REMAINING_LESSONS",

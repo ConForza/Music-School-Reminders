@@ -5,6 +5,7 @@ from app.config import TEST_TOKEN
 from app.adapters.discord.discord_adapter import DiscordAdapter
 from app.services.command_service import CommandService
 from app.services.command_renderer import CommandRenderer
+from app.persistence.sqlite.instrument_repository import InstrumentRepository
 
 TOKEN = TEST_TOKEN
 DISCORD_MAX = 2000
@@ -20,10 +21,13 @@ class MusicSchoolBot(discord.Client):
         self.adapter = DiscordAdapter()
         self.service = CommandService()
         self.renderer = CommandRenderer()
+        self.instrument_repository = InstrumentRepository()
 
     async def setup_hook(self):
         await self.tree.sync()
 
+
+bot = MusicSchoolBot()
 
 def chunk_text(text: str, size: int = DISCORD_MAX):
     for i in range(0, len(text), size):
@@ -33,9 +37,6 @@ def chunk_text(text: str, size: int = DISCORD_MAX):
 def run_pipeline_from_request(bot, request):
     result = bot.service.receive_command(request)
     return bot.renderer.render(result)
-
-
-bot = MusicSchoolBot()
 
 
 async def run_and_send(interaction: discord.Interaction, payload: dict, *, empty_message: str = "No results found."):
@@ -156,6 +157,7 @@ async def lessons_remaining(interaction: discord.Interaction, student_email: str
 @app_commands.describe(
     staff_id="Staff ID (integer). Defaults to your staff record",
     student_email="Student email address",
+    instrument="Student's instrument e.g. guitar, piano",
     lesson_duration="(mins) 30 or 60",
     quantity="Number of blocks",
     preview="Run in preview mode (no real changes made)"
@@ -169,6 +171,17 @@ async def create_block(
         staff_id: int | None = None,
         preview: bool = False
 ):
+    if lesson_duration not in (30, 60):
+        await interaction.response.send_message(
+            "Lesson duration must be 30 or 60 minutes.",
+            ephemeral=True
+        )
+
+    if quantity <= 0:
+        await interaction.response.send_message(
+            "Quantity must be greater than zero.",
+            ephemeral=True
+        )
     await interaction.response.defer(thinking=True)
 
     options = {
@@ -191,6 +204,44 @@ async def create_block(
 
     await run_and_send(interaction, payload, empty_message="No result returned.")
 
+@lessons_remaining.autocomplete("instrument")
+async def lessons_remaining_instrument_autocomplete(
+        interaction: discord.Interaction,
+        current: str
+):
+    repo = bot.instrument_repository
+    names = repo.search_instruments(current.strip(), limit = 25)
+
+    return [
+        app_commands.Choice(name=name, value=name) for name in names
+    ]
+
+@create_block.autocomplete("instrument")
+async def create_block_instrument_autocomplete(
+        interaction: discord.Interaction,
+        current: str
+):
+    repo = bot.instrument_repository
+    names = repo.search_instruments(current.strip(), limit=25)
+
+    return [
+        app_commands.Choice(name=name, value=name) for name in names
+    ]
+
+@bot.tree.command(name="help_blocks", description="Show help for block commands")
+async def help_blocks(interaction: discord.Interaction):
+    text = (
+        "**Block tools help**\n\n"
+        "`/lessons_remaining student_email instrument`\n"
+        "→ Shows remaining 30/60 minute lessons for that email+instrument.\n\n"
+        "`/create_block student_email instrument lesson_duration quantity [staff_id] [preview]`\n"
+        "→ Creates block(s) of 5 lessons as Acuity certificates.\n"
+        "   • `lesson_duration`: 30 or 60\n"
+        "   • `quantity`: number of blocks (each block = 5 lessons)\n"
+        "   • `preview`: if true, just prints what would happen.\n"
+    )
+
+    await interaction.response.send_message(text, ephemeral=True)
 
 @bot.tree.error
 async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):

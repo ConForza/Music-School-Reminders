@@ -106,7 +106,6 @@ def fetch_certificates_for_student(student):
             params=parameters,
             headers=headers
         )
-        print(response.json())
 
         response.raise_for_status()
 
@@ -115,9 +114,33 @@ def fetch_certificates_for_student(student):
     except Exception as e:
         print(f"[ACUITY ERROR] fetch_certificates_for_student({student.email}): {e}")
 
+def create_certificates_for_student(cert_code, student_email, quantity, preview: bool = False):
+    if preview:
+        print(f"[PREVIEW] Would create {quantity }certificate/s for {student_email} (product_ID: {cert_code})")
+        return True, None
 
+    parameters = {
+        "productID": cert_code,
+        "email": student_email.lower()
+    }
 
-def apply_certificate_to_lesson(order_id, lesson_id, preview=False):
+    try:
+        for _ in range(int(quantity)):
+            response = requests.post(
+                url=f"{ACUITY_BASE_URL}/certificates",
+                auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
+                json=parameters,
+                headers=headers
+            )
+
+            response.raise_for_status()
+    except Exception as e:
+        print(f"[ACUITY ERROR] create_certificate_for_student({student_email}): {e}")
+        return False, str(e)
+
+    return True, None
+
+def apply_certificate_to_lesson(order_id, lesson_id, preview: bool = False):
     if preview:
         print(f"[PREVIEW] Would apply certificate {order_id} to lesson {lesson_id}")
         return True, 120
@@ -141,3 +164,32 @@ def apply_certificate_to_lesson(order_id, lesson_id, preview=False):
     except Exception as e:
         return False, str(e)
 
+
+def is_valid_email(email: str) -> bool:
+    email = (email or "").strip().lower()
+    if not email:
+        return False
+
+    parameters = {
+        "search": email
+    }
+
+    try:
+        response = requests.get(
+            url=ACUITY_BASE_URL + "/clients",
+            auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
+            params=parameters,
+            headers=headers
+        )
+        response.raise_for_status()
+
+        for result in response.json() or []:
+            client_email = (result.get("email") or "").strip().lower()
+            if client_email == email:
+                return True
+
+        return False
+
+    except Exception as e:
+        print(f"[ACUITY ERROR] is_valid_email({email}): {e}")
+        return False
