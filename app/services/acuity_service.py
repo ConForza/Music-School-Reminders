@@ -7,7 +7,6 @@ from app.config import ACUITY_API_KEY
 from app.config import ACUITY_BASE_URL
 
 import requests
-import datetime as dt
 
 _students_by_email = {}
 headers = {
@@ -16,13 +15,11 @@ headers = {
     }
 
 
-def fetch_appointments_for_calendar(calendar_id):
-    today_date = (dt.datetime.now() + dt.timedelta(days=0)).strftime("%B %d, %Y")
-
+def fetch_appointments_for_calendar(calendar_id, date_from, date_to):
     try:
         parameters = {
-                "minDate": today_date,
-                "maxDate": today_date,
+                "minDate": date_from,
+                "maxDate": date_to,
                 "calendarID": calendar_id
             }
 
@@ -69,9 +66,9 @@ def lesson_from_api(result):
 
     return lesson
 
-def fetch_students_for_staff(staff):
+def fetch_students_for_staff(staff, date_from, date_to):
     _students_by_email.clear()
-    success, data_or_error = fetch_appointments_for_calendar(staff.calendar_id)
+    success, data_or_error = fetch_appointments_for_calendar(staff.calendar_id, date_from, date_to)
 
     if not success:
         raise RuntimeError(f"{staff.name}: {data_or_error}")
@@ -140,27 +137,23 @@ def create_certificates_for_student(cert_code, student_email, quantity, preview:
 
     return True, None
 
-def apply_certificate_to_lesson(order_id, lesson_id, preview: bool = False):
+def apply_certificate_to_lesson(order_id, lesson_id, preview):
     if preview:
         print(f"[PREVIEW] Would apply certificate {order_id} to lesson {lesson_id}")
-        return True, 120
+        return True, None
 
     try:
-        print(f"[API STUB] Applying certificate {order_id} to lesson {lesson_id}")
-        # parameters = {
-        #     "certificate": order_id,
-        # }
-        #
-        # response = requests.put(url=f"{ACUITY_BASE_URL}/appointments/{lesson_id}?admin=true", auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
-        #                      json=parameters, headers=headers)
+        parameters = {
+            "certificate": order_id,
+        }
 
-        # if response.status_code != 200:
-        #   return False f"API error: {response.status_code} {response.text}"
-        #
-        # remaining = response.json().get("remainingMinutes")
+        response = requests.put(url=f"{ACUITY_BASE_URL}/appointments/{lesson_id}?admin=true", auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
+                             json=parameters, headers=headers)
 
-        remaining = 120
-        return True, remaining
+        if response.status_code != 200:
+          return False, f"API error: {response.status_code} {response.text}"
+
+        return True, None
     except Exception as e:
         return False, str(e)
 

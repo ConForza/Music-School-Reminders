@@ -2,7 +2,7 @@ from app.persistence.sqlite.staff_repository import StaffRepository
 
 class ReportService:
 
-    BANNER = "================ PREVIEW MODE ================\n" \
+    BANNER = "**PREVIEW MODE**\n" \
                  "No changes have been made in Acuity.\n\n"
 
     def __init__(self):
@@ -24,7 +24,7 @@ class ReportService:
             problems = student_report.problem_results()
 
             for r in applied:
-                report += f"✅ Lesson {r.lesson_id} → {r.certificate_id} ({r.remaining_minutes} mins left)\n"
+                report += f"✅ Lesson {r.lesson_id} → {r.certificate_id} ({r.remaining_lessons} lesson(s) remaining)\n"
 
             for r in problems:
                 if r.status == "no_valid_certificate":

@@ -3,6 +3,7 @@ from app.services.certificate_service import CertificateService
 from services.report_service import ReportService
 from reports.staff_daily_report import StaffDailyReport
 from app.models.command_result import CommandResult
+import datetime as dt
 
 
 class DailyRunnerService:
@@ -12,6 +13,7 @@ class DailyRunnerService:
         self.report_service = ReportService()
 
     def run_daily(self, staff_members, source=None, preview: bool = False):
+        today_date = (dt.datetime.now() + dt.timedelta(days=5)).strftime("%B %d, %Y")
 
         staff_reports = []
         errors = []
@@ -19,7 +21,7 @@ class DailyRunnerService:
         for staff in staff_members:
             try:
                 staff_report = StaffDailyReport(staff)
-                students = fetch_students_for_staff(staff)
+                students = fetch_students_for_staff(staff, today_date, today_date)
                 for student in students:
                     fetch_certificates_for_student(student)
                     results = self.certificate_service.apply_certificates_for_student(student, preview=preview)

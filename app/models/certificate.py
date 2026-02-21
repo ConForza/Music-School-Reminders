@@ -1,6 +1,5 @@
 from datetime import datetime, date
 
-
 class Certificate:
 
     def __init__(self, order_id, certificate_name, expiration_date_raw, remaining_minutes, appointment_type_ids):
@@ -14,10 +13,7 @@ class Certificate:
         return date.today() > self.expiration_date
 
     def matches_lesson(self, lesson):
-        if lesson.duration == 30 and "30" in self.certificate_name:
-            return True
-
-        if lesson.duration == 60 and "1 Hour" in self.certificate_name:
+        if lesson.appointment_type_id in self.appointment_type_ids:
             return True
 
         return False

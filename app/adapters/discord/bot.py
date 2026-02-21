@@ -64,7 +64,7 @@ async def run_and_send(interaction: discord.Interaction, payload: dict, *, empty
 
 @bot.tree.command(name="daily_report", description="Run daily staff report")
 @app_commands.describe(preview="Run in preview mode (no real changes made)")
-async def daily_report(interaction: discord.Interaction, preview: bool = True):
+async def daily_report(interaction: discord.Interaction, preview: bool = False):
     await interaction.response.defer(thinking=True)
 
     payload = {
@@ -203,6 +203,40 @@ async def create_block(
     }
 
     await run_and_send(interaction, payload, empty_message="No result returned.")
+
+@bot.tree.command(name="generate_invoice", description="Create an invoice for a staff member given the inputted dates")
+@app_commands.describe(
+    staff_id="Staff ID (integer). Defaults to your staff record",
+    date_from="Start date for invoice period",
+    date_to="End date for invoice period",
+    preview="Run in preview mode (no real changes made)"
+)
+async def generate_invoice(
+        interaction: discord.Interaction,
+        date_from: str,
+        date_to: str,
+        staff_id: int | None = None,
+        preview: bool = False
+):
+    await interaction.response.defer(thinking=True)
+
+    options = {
+        "date_from": date_from,
+        "date_to": date_to,
+        "preview": preview,
+    }
+    if staff_id is not None:
+        options["staff_id"] = staff_id
+
+    payload = {
+        "command_name": "generate_invoice",
+        "user_id": str(interaction.user.id),
+        "channel_id": str(interaction.channel_id),
+        "guild_id": str(interaction.guild_id),
+        "options": options,
+    }
+
+    await run_and_send(interaction, payload, empty_message="No invoice details found")
 
 @lessons_remaining.autocomplete("instrument")
 async def lessons_remaining_instrument_autocomplete(

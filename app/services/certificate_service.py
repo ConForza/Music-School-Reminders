@@ -16,9 +16,16 @@ class CertificateService:
 
         return valid_certificates[0]
 
-    def apply_certificates_for_student(self, student, preview=False):
+    def apply_certificates_for_student(self, student, preview):
 
         results = []
+        total_minutes = sum(
+            cert.remaining_minutes
+            for cert in student.certificates
+            if not cert.is_expired()
+            and any(lesson.appointment_type_id in cert.appointment_type_ids
+                    for lesson in student.unpaid_lessons())
+        )
 
         for lesson in student.unpaid_lessons():
             certificate = self.select_certificate_for_lesson(student, lesson)
@@ -31,20 +38,22 @@ class CertificateService:
                 ))
                 continue
 
-            success, remaining_minutes = acuity_service.apply_certificate_to_lesson(
+            success, error = acuity_service.apply_certificate_to_lesson(
                 certificate.order_id,
                 lesson.id_,
                 preview=preview
             )
 
             if success:
+                total_minutes -= lesson.duration
+                remaining_lessons = total_minutes // lesson.duration
                 results.append(LessonResult(
                     lesson_id=lesson.id_,
                     lesson_date=lesson.date,
                     duration=lesson.duration,
                     status="applied",
                     certificate_id=certificate.order_id,
-                    remaining_minutes=remaining_minutes
+                    remaining_lessons=remaining_lessons
                 ))
                 continue
             else:
@@ -52,7 +61,7 @@ class CertificateService:
                     lesson_id=lesson.id_,
                     lesson_date=lesson.date,
                     duration=lesson.duration,
-                    status="api_failed",
+                    status=error,
                     certificate_id=certificate.order_id,
                 ))
                 continue

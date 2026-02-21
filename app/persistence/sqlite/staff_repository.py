@@ -30,6 +30,18 @@ class StaffRepository:
 
         return row[0]
 
+    def get_staff_calendar_id(self, staff_id) -> int:
+        conn = self.connection.create_connection()
+        c = conn.cursor()
+        c.execute("SELECT acuity_calendar_id FROM staff WHERE id = ?", (staff_id,))
+        row = c.fetchone()
+        conn.close()
+
+        if row is None:
+            return None
+
+        return row[0]
+
     def get_all_staff(self) -> list[Staff]:
         conn = self.connection.create_connection()
         c = conn.cursor()
