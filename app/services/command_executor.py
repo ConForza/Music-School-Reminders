@@ -8,6 +8,7 @@ from app.services.audit_logger import AuditLogger
 from app.models.command_result import CommandResult
 from app.models.student import Student
 from app.persistence.sqlite.instrument_repository import InstrumentRepository
+from datetime import datetime
 
 
 class CommandExecutor:
@@ -25,7 +26,20 @@ class CommandExecutor:
         staff_members = self.staff_repository.get_all_staff()
         return self.runner.run_daily(staff_members, source=source, preview=preview)
 
-    def generate_invoice(self, staff_id, date_from, date_to, source, user_id, preview: bool = False):
+    def generate_invoice(self, staff_id: int, date_from, date_to, source, user_id, preview: bool = False):
+        routing = {"target": "staff"}
+        try:
+            date_from = datetime.strptime(date_from, "%d/%m/%y").strftime("%B %d, %Y")
+            date_to = datetime.strptime(date_to, "%d/%m/%y").strftime("%B %d, %Y")
+        except (TypeError, ValueError):
+            return CommandResult(
+                type_="GENERATE_INVOICE",
+                content={},
+                errors=["❌ Dates must be in the format dd/mm/yy"],
+                routing=routing,
+                source=source
+            )
+
         return self.invoice.generate_invoice(
             staff_id=staff_id,
             date_from=date_from,
@@ -81,7 +95,7 @@ class CommandExecutor:
 
     def create_block(self, staff_id, student_email, lesson_duration, quantity, instrument, source, user_id, preview: bool = False):
         routing = {"target": "staff"}
-        student_email = student_email.strip.lower()
+        student_email = student_email.strip().lower()
         instrument = instrument.strip()
         try:
             lesson_duration_int = int(lesson_duration)
@@ -173,21 +187,76 @@ class CommandExecutor:
         )
 
     def delete_all_lessons(self, staff_id, date_from, date_to, source, user_id, preview: bool = False):
+        routing = {"target": "staff"}
+        try:
+            date_from = datetime.strptime(date_from, "%d/%m/%y").strftime("%B %d, %Y")
+            date_to = datetime.strptime(date_to, "%d/%m/%y").strftime("%B %d, %Y")
+        except (TypeError, ValueError):
+            return CommandResult(
+                type_="DELETE_ALL_LESSONS",
+                content={},
+                errors=["❌ Dates must be in the format dd/mm/yy"],
+                routing=routing,
+                source=source
+            )
+
         return self.appointments.delete_all_lessons(
             staff_id=staff_id,
             date_from=date_from,
             date_to=date_to,
+            routing=routing,
             source=source,
             preview=preview
         )
 
-    def delete_student_lessons(self, staff_id, student_email, date_from, date_to, instrument, source, user_id,
+    def delete_student_lessons(self, staff_id, student_email, date_from, date_to, source, user_id, instrument = None,
                                preview: bool = False):
+        routing = {"target": "staff"}
+        try:
+            date_from = datetime.strptime(date_from, "%d/%m/%y").strftime("%B %d, %Y")
+            date_to = datetime.strptime(date_to, "%d/%m/%y").strftime("%B %d, %Y")
+        except (TypeError, ValueError):
+            return CommandResult(
+                type_="DELETE_STUDENT_LESSONS",
+                content={},
+                errors=["❌ Dates must be in the format dd/mm/yy"],
+                routing=routing,
+                source=source
+            )
+
+        student_email = student_email.strip().lower()
+        if not is_valid_email(student_email):
+            return CommandResult(
+                type_="DELETE_STUDENT_LESSONS",
+                content={},
+                errors=["❌ Student email does not exist on Acuity."],
+                routing=routing,
+                source=source
+            )
+
+        if instrument:
+            instrument = instrument.strip()
+            if not self.instrument_repository.instrument_exists(instrument):
+                return CommandResult(
+                    type_="DELETE_STUDENT_LESSONS",
+                    content={
+                        "student_email": student_email,
+                        "instrument": instrument,
+                    },
+                    errors=[
+                        "❌ Instrument not found. Please check your spelling."
+                    ],
+                    routing=routing,
+                    source=source
+                )
+
         return self.appointments.delete_student_lessons(
             staff_id=staff_id,
             student_email=student_email,
             date_from=date_from,
             date_to=date_to,
+            instrument=instrument,
+            routing=routing,
             source=source,
             preview=preview
         )

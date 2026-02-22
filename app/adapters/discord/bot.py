@@ -135,7 +135,10 @@ async def audit_errors(interaction: discord.Interaction, limit: int = 5):
 
 
 @bot.tree.command(name="lessons_remaining", description="Check remaining lessons for a student")
-@app_commands.describe(student_email="Student email address", instrument="Student's instrument")
+@app_commands.describe(
+    student_email="Student email address",
+    instrument="Student's instrument e.g. guitar, piano"
+)
 async def lessons_remaining(interaction: discord.Interaction, student_email: str, instrument: str):
     await interaction.response.defer(thinking=True, ephemeral=True)
 
@@ -176,12 +179,15 @@ async def create_block(
             "Lesson duration must be 30 or 60 minutes.",
             ephemeral=True
         )
+        return
 
     if quantity <= 0:
         await interaction.response.send_message(
             "Quantity must be greater than zero.",
             ephemeral=True
         )
+        return
+
     await interaction.response.defer(thinking=True)
 
     options = {
@@ -204,11 +210,87 @@ async def create_block(
 
     await run_and_send(interaction, payload, empty_message="No result returned.")
 
+@bot.tree.command(name="delete_all_lessons", description="Delete all students over a given period for a staff member")
+@app_commands.describe(
+    date_from="Start date for deletion (format dd/mm/yy)",
+    date_to="End date for deletion (format dd/mm/yy)",
+    staff_id="Staff ID (integer). Defaults to your staff record",
+    preview="Run in preview mode (no real changes made)"
+)
+async def delete_all_lessons(
+        interaction: discord.Interaction,
+        date_from: str,
+        date_to: str,
+        staff_id: int | None = None,
+        preview: bool = False
+):
+    await interaction.response.defer(thinking=True)
+
+    options = {
+        "date_from": date_from,
+        "date_to": date_to,
+        "preview": preview,
+    }
+    if staff_id is not None:
+        options["staff_id"] = staff_id
+
+    payload = {
+        "command_name": "delete_all_lessons",
+        "user_id": str(interaction.user.id),
+        "channel_id": str(interaction.channel_id),
+        "guild_id": str(interaction.guild_id),
+        "options": options,
+    }
+
+    await run_and_send(interaction, payload, empty_message="No result returned.")
+
+@bot.tree.command(name="delete_student_lessons", description="Delete a students' lessons over a given period for a staff member")
+@app_commands.describe(
+    student_email="Student's email address",
+    date_from="Start date for deletion (format dd/mm/yy)",
+    date_to="End date for deletion (format dd/mm/yy)",
+    staff_id="Staff ID (integer). Defaults to your staff record",
+    instrument="Student's instrument e.g. guitar, piano",
+    preview="Run in preview mode (no real changes made)"
+)
+async def delete_student_lessons(
+        interaction: discord.Interaction,
+        student_email: str,
+        date_from: str,
+        date_to: str,
+        staff_id: int | None = None,
+        instrument: str | None = None,
+        preview: bool = False
+):
+    await interaction.response.defer(thinking=True)
+
+    options = {
+        "student_email": student_email,
+        "date_from": date_from,
+        "date_to": date_to,
+        "preview": preview,
+    }
+    if staff_id is not None:
+        options["staff_id"] = staff_id
+
+    if instrument is not None:
+        options["instrument"] = instrument
+
+    payload = {
+        "command_name": "delete_student_lessons",
+        "user_id": str(interaction.user.id),
+        "channel_id": str(interaction.channel_id),
+        "guild_id": str(interaction.guild_id),
+        "options": options,
+    }
+
+    await run_and_send(interaction, payload, empty_message="No result returned.")
+
 @bot.tree.command(name="generate_invoice", description="Create an invoice for a staff member given the inputted dates")
 @app_commands.describe(
     staff_id="Staff ID (integer). Defaults to your staff record",
-    date_from="Start date for invoice period",
-    date_to="End date for invoice period",
+    date_from="Start date for invoice period (format dd/mm/yy)",
+    date_to="End date for invoice period (format dd/mm/yy)",
     preview="Run in preview mode (no real changes made)"
 )
 async def generate_invoice(
@@ -252,6 +334,18 @@ async def lessons_remaining_instrument_autocomplete(
 
 @create_block.autocomplete("instrument")
 async def create_block_instrument_autocomplete(
+        interaction: discord.Interaction,
+        current: str
+):
+    repo = bot.instrument_repository
+    names = repo.search_instruments(current.strip(), limit=25)
+
+    return [
+        app_commands.Choice(name=name, value=name) for name in names
+    ]
+
+@delete_student_lessons.autocomplete("instrument")
+async def delete_student_lessons_autocomplete(
         interaction: discord.Interaction,
         current: str
 ):

@@ -45,6 +45,8 @@ class CertificateService:
             )
 
             if success:
+                if not preview:
+                    lesson.payment.is_paid_raw = "yes"
                 total_minutes -= lesson.duration
                 remaining_lessons = total_minutes // lesson.duration
                 results.append(LessonResult(

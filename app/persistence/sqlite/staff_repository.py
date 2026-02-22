@@ -51,6 +51,7 @@ class StaffRepository:
             ORDER BY surname, first_name
         """)
         rows = c.fetchall()
+        conn.close()
         return [
             Staff(
                 id_=r["id"],
@@ -62,3 +63,24 @@ class StaffRepository:
             )
             for r in rows
         ]
+
+    def get_staff_record(self, staff_id) -> Staff:
+        conn = self.connection.create_connection()
+        c = conn.cursor()
+        c.execute("""
+            SELECT id, user_id, first_name, surname, role, acuity_calendar_id
+            FROM staff
+            WHERE id = ?
+        """, (staff_id,))
+        r = c.fetchone()
+        conn.close()
+        return (
+            Staff(
+                id_=r["id"],
+                user_id=r["user_id"],
+                first_name=r["first_name"],
+                surname=r["surname"],
+                role=r["role"],
+                acuity_calendar_id=r["acuity_calendar_id"]
+            )
+        )

@@ -28,8 +28,8 @@ class CommandService:
                 access="staff_or_admin"
             ),
             "generate_invoice": CommandDefinition(
-                required_args=["staff_id", "date_from", "date_to"],
-                optional_args=[],
+                required_args=["date_from", "date_to"],
+                optional_args=["staff_id"],
                 handler=self.executor.generate_invoice,
                 access="staff_self_or_admin"
             ),
@@ -40,14 +40,14 @@ class CommandService:
                 access="staff_self_or_admin"
             ),
             "delete_all_lessons": CommandDefinition(
-                required_args=["staff_id", "date_from", "date_to"],
-                optional_args=[],
+                required_args=["date_from", "date_to"],
+                optional_args=["staff_id"],
                 handler=self.executor.delete_all_lessons,
                 access="staff_self_or_admin"
             ),
             "delete_student_lessons": CommandDefinition(
-                required_args=["staff_id", "student_email", "date_from", "date_to"],
-                optional_args=["instrument"],
+                required_args=["student_email", "date_from", "date_to"],
+                optional_args=["staff_id", "instrument"],
                 handler=self.executor.delete_student_lessons,
                 access="staff_self_or_admin"
             ),

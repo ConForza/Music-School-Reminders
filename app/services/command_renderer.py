@@ -1,5 +1,3 @@
-from idlelib.pyshell import restart_line
-
 from app.models.command_response import CommandResponse
 from services.report_service import ReportService
 
@@ -68,9 +66,10 @@ class CommandRenderer:
         messages = []
 
         reports = result.content.get("reports", [])
+        preview = result.content.get("preview")
 
         for report in reports:
-            body = self._render_staff_report(report)
+            body = self._render_staff_report(report, preview)
 
             messages.append({
                 "to": self._resolve_destination(result),
@@ -84,8 +83,8 @@ class CommandRenderer:
             errors=result.errors
         )
 
-    def _render_staff_report(self, report):
-        return self.report_service.print_staff_report(report)
+    def _render_staff_report(self, report, preview):
+        return self.report_service.print_staff_report(report, preview)
 
     def _render_remaining_lessons(self, result):
         messages = []
@@ -139,9 +138,11 @@ class CommandRenderer:
         staff_id = result.content.get("staff_id")
         date_from = result.content.get("date_from")
         date_to = result.content.get("date_to")
+        lessons = result.content.get("lessons_to_add")
+        total_amount = result.content.get("total_amount")
         preview = result.content.get("preview", False)
 
-        body = self.report_service.print_invoice(staff_id, date_from, date_to, preview)
+        body = self.report_service.print_invoice(staff_id, date_from, date_to, lessons, total_amount, preview)
 
         messages.append({
             "to": self._resolve_destination(result),
@@ -161,9 +162,11 @@ class CommandRenderer:
         staff_id = result.content.get("staff_id")
         date_from = result.content.get("date_from")
         date_to = result.content.get("date_to")
+        lessons_deleted = result.content.get("lessons_deleted")
+        errors = result.errors
         preview = result.content.get("preview", False)
 
-        body = self.report_service.delete_all_lessons(staff_id, date_from, date_to, preview)
+        body = self.report_service.delete_all_lessons(staff_id, date_from, date_to, lessons_deleted, errors, preview)
 
         messages.append({
             "to": self._resolve_destination(result),
@@ -174,7 +177,7 @@ class CommandRenderer:
         return CommandResponse(
             messages=messages,
             routing=result.routing,
-            errors=result.errors
+            errors=errors
         )
 
     def _render_delete_student_lessons(self, result):
@@ -184,9 +187,13 @@ class CommandRenderer:
         student_email = result.content.get("student_email")
         date_from = result.content.get("date_from")
         date_to = result.content.get("date_to")
+        instrument = result.content.get("instrument")
+        lessons_deleted = result.content.get("lessons_deleted")
         preview = result.content.get("preview", False)
 
-        body = self.report_service.delete_student_lessons(staff_id, student_email, date_from, date_to, preview)
+        body = self.report_service.delete_student_lessons(
+            staff_id, student_email, date_from, date_to, instrument, lessons_deleted, result.errors, preview
+        )
 
         messages.append({
             "to": self._resolve_destination(result),

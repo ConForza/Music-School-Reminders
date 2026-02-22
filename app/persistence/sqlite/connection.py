@@ -87,5 +87,14 @@ class Connection:
                      )
                   """)
 
+        c.execute("""CREATE TABLE IF NOT EXISTS prices
+                     (
+                         id INTEGER PRIMARY KEY AUTOINCREMENT,
+                         lesson_type TEXT UNIQUE,
+                         price INTEGER,
+                         staff_cut INTEGER
+                     )
+                  """)
+
         conn.commit()
         conn.close()

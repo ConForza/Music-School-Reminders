@@ -13,7 +13,7 @@ class DailyRunnerService:
         self.report_service = ReportService()
 
     def run_daily(self, staff_members, source=None, preview: bool = False):
-        today_date = (dt.datetime.now() + dt.timedelta(days=5)).strftime("%B %d, %Y")
+        today_date = (dt.datetime.now() + dt.timedelta(days=0)).strftime("%B %d, %Y")
 
         staff_reports = []
         errors = []
@@ -41,7 +41,8 @@ class DailyRunnerService:
         return CommandResult(
             type_="RUN_DAILY",
             content={
-                "reports": staff_reports
+                "reports": staff_reports,
+                "preview": preview
             },
             errors=errors,
             routing=routing,

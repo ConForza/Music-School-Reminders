@@ -1,3 +1,5 @@
+from logging import exception
+
 from app.models.student import Student
 from app.models.lesson import Lesson
 from app.models.payment import Payment
@@ -20,15 +22,18 @@ def fetch_appointments_for_calendar(calendar_id, date_from, date_to):
         parameters = {
                 "minDate": date_from,
                 "maxDate": date_to,
-                "calendarID": calendar_id
+                "calendarID": calendar_id,
+                "direction": "ASC",
             }
 
         response = requests.get(
                 url=f"{ACUITY_BASE_URL}/appointments",
                 auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
                 params=parameters,
-                headers=headers
+                headers=headers,
             )
+
+        response.raise_for_status()
 
         return True, response.json()
     except Exception as e:
@@ -113,7 +118,7 @@ def fetch_certificates_for_student(student):
 
 def create_certificates_for_student(cert_code, student_email, quantity, preview: bool = False):
     if preview:
-        print(f"[PREVIEW] Would create {quantity }certificate/s for {student_email} (product_ID: {cert_code})")
+        print(f"[PREVIEW] Would create {quantity} certificate/s for {student_email} (product_ID: {cert_code})")
         return True, None
 
     parameters = {
@@ -150,12 +155,38 @@ def apply_certificate_to_lesson(order_id, lesson_id, preview):
         response = requests.put(url=f"{ACUITY_BASE_URL}/appointments/{lesson_id}?admin=true", auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
                              json=parameters, headers=headers)
 
-        if response.status_code != 200:
-          return False, f"API error: {response.status_code} {response.text}"
+        response.raise_for_status()
 
         return True, None
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
+        print(f"[ACUITY ERROR] apply_certificate_to_lesson({order_id}, {lesson_id}): {e}")
         return False, str(e)
+
+def delete_appointment(appointment_id, preview):
+    if preview:
+        print(f"[PREVIEW] Would delete lesson {appointment_id}")
+        return True, None
+
+    try:
+        parameters = {
+            "noEmail": "true",
+            "admin": "true"
+        }
+
+        response = requests.put(
+            url=f"{ACUITY_BASE_URL}/appointments/{appointment_id}/cancel",
+            auth=(ACUITY_USER_NAME, ACUITY_API_KEY),
+            params=parameters,
+            headers=headers
+        )
+
+        response.raise_for_status()
+        return True, None
+
+    except requests.exceptions.RequestException as e:
+        print(f"[ACUITY ERROR] delete appointment({appointment_id}): {e}")
+        return False, str(e)
+
 
 
 def is_valid_email(email: str) -> bool:
@@ -183,6 +214,6 @@ def is_valid_email(email: str) -> bool:
 
         return False
 
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         print(f"[ACUITY ERROR] is_valid_email({email}): {e}")
         return False
