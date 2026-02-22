@@ -1,13 +1,17 @@
 # Music School Certificate Automation
 
-This project automates the application of prepaid lesson certificates to unpaid lessons using the Acuity Scheduling API, and produces structured daily reports for teaching staff.
+This project is a Discord-based automation tool for managing a music school’s lesson administration.
 
-It is designed as the backend core of a future Discord / web application used by a music school to manage:
+It integrates with the Acuity Scheduling API to:
 
-- Block lesson payments (certificates)
-- Unpaid lessons
-- Automatic certificate application
-- Daily staff summaries
+- Apply lesson certificates automatically
+- Generate staff invoices
+- Create lesson blocks
+- Delete lessons in bulk
+- Audit command usage
+- Run daily staff reports
+
+All commands support preview mode to prevent accidental state changes.
 
 ---
 
@@ -23,13 +27,19 @@ The system is organised into clear layers:
 - `Staff`
 
 ### Services
-- `AcuityService` – API boundary for appointments & certificates  
-- `CertificateService` – core orchestration logic  
-- `ReportService` – generates structured daily summaries  
+- `AcuityService` – boundary layer for external API calls (appointments, certificates)
+- `CommandService` – entry point for commands; handles validation, access control, and audit logging
+- `CommandExecutor` – orchestrates domain services once a command is validated
+- `CertificateService` – certificate selection and application logic
+- `InvoiceService` – invoice calculation and aggregation logic
+- `AppointmentService` – deletion and appointment management logic
+- `ReportService` – presentation formatting (Discord output only)
 
 ### Reports
 - `StaffDailyReport`
 - `StudentDailyReport`
+
+---
 
 ### Database schema (SQLite)
 
@@ -41,6 +51,14 @@ staff
 - teaching and admin staff
 - linked to users (1–1)
 
+instruments
+- instruments
+- lesson and appointment codes
+
+prices
+- pricing based on lesson type and duration
+- staff lesson cuts (amounts)
+
 audit_logs
 - records all command executions
 - linked to users when available
@@ -50,21 +68,32 @@ audit_logs
 
 ---
 
-## ⚙️ Core Flow
+## ⚙️ Core Command Lifecycle
 
-1.  Fetch students and unpaid lessons from Acuity  
-2.  Fetch certificates per student  
-3.  Sort unpaid lessons (oldest first)  
-4.  Select certificates by:
-    - Earliest expiration  
-    - Valid lesson type  
-    - Sufficient remaining minutes  
-5.  Apply certificates via API  
-6.  Record success, failure, and unmatched lessons  
-7.  Produce per-staff daily summaries
-8.  Create certificates, generate invoices, delete lessons via API 
-9.  All API calls live in AcuityService 
-10. Persistence layer using SQLite for audit logging
+1. Discord slash command received
+2. CommandService validates arguments and permissions
+3. CommandExecutor orchestrates the relevant domain service
+4. Domain service performs business logic
+5. AcuityService handles all external API communication
+6. Results returned as CommandResult
+7. ReportService formats Discord output
+8. AuditLogger records execution in SQLite
+
+---
+
+## 🏗️ High-Level Architecture
+
+Discord
+   ↓
+CommandService (validation & access control)
+   ↓
+CommandExecutor (orchestration)
+   ↓
+Domain Services (Invoice, Certificate, Appointment)
+   ↓
+AcuityService (external API)
+   ↓
+SQLite (audit logging)
 
 ---
 
@@ -81,25 +110,23 @@ Student: API Failure (api@example.com)
 
 ## 🧪 Testing
 
-Currently uses stubbed API responses in `main.py` to simulate:
-
-- Successful application  
-- No valid certificates  
-- API failures  
-
-Pytest integration is planned for a later stage.
+- Business logic is designed to be testable via service-layer isolation.
+- External API calls are contained within `AcuityService`, allowing domain services to be tested independently using mocked responses.
+- Expanded Pytest coverage is planned as the next development phase.
 
 ---
 
-## 🚀 Future Work
+## 🔒 Access Control
 
-Planned extensions:
+Commands are protected via role-based rules:
 
-- Integration with Discord bot commands (WMFBot)
-- Real Acuity API connection
-- Web interface (React + Python backend)
-- Staff authentication
-- Automated daily scheduled runs
+- `admin_only`
+- `staff_or_admin`
+- `staff_self_or_admin`
+
+The system validates that:
+- Staff members cannot operate on other staff records
+- Non-admin users cannot access administrative commands
 
 ---
 
@@ -109,4 +136,17 @@ Built as part of a portfolio project focusing on:
 - Clean architecture  
 - Service-oriented design  
 - Real-world API workflows  
-- Robust failure handling  
+- Robust failure handling
+
+---
+
+## 🧑‍💻 Technical Highlights
+
+- Service-layer architecture
+- Command pattern implementation
+- Role-based access control
+- SQLite persistence layer
+- External API integration with error handling
+- Preview-safe destructive operations
+- Monospace invoice rendering optimized for Discord mobile
+- Structured audit logging
