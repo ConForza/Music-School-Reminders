@@ -15,7 +15,7 @@ class Student:
 
     def unpaid_lessons(self):
         unpaid = [lesson for lesson in self.lessons if lesson.is_unpaid()]
-        return sorted(unpaid, key=lambda l: l.date)
+        return sorted(unpaid, key=lambda l: l.datetime)
 
     def valid_certificates_for(self, lesson):
         return [certificate for certificate in self.certificates if certificate.can_apply_to(lesson)]
