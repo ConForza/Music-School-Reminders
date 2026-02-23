@@ -1,4 +1,4 @@
-from reports.student_daily_report import StudentDailyReport
+from app.reports.student_daily_report import StudentDailyReport
 
 class StaffDailyReport:
     def __init__(self, staff):

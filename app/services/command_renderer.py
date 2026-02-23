@@ -1,5 +1,5 @@
 from app.models.command_response import CommandResponse
-from services.report_service import ReportService
+from app.services.report_service import ReportService
 
 
 class CommandRenderer:

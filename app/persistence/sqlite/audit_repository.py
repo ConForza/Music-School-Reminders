@@ -1,5 +1,5 @@
 from app.persistence.sqlite.connection import Connection
-from models.command_execution import CommandExecution
+from app.models.command_execution import CommandExecution
 from typing import List
 import json
 

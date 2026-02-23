@@ -1,5 +1,5 @@
 from app.models.command_request import CommandRequest
-from persistence.sqlite.user_repository import UserRepository
+from app.persistence.sqlite.user_repository import UserRepository
 
 class DiscordAdapter:
 

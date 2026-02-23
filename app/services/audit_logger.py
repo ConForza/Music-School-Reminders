@@ -1,9 +1,8 @@
 from app.persistence.sqlite.audit_repository import AuditRepository
 from app.models.command_execution import CommandExecution
 from app.models.command_result import CommandResult
+from app.persistence.sqlite.user_repository import UserRepository
 from datetime import datetime
-
-from persistence.sqlite.user_repository import UserRepository
 
 
 class AuditLogger:

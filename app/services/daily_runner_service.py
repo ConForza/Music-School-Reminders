@@ -1,7 +1,7 @@
 from app.services.acuity_service import *
 from app.services.certificate_service import CertificateService
-from services.report_service import ReportService
-from reports.staff_daily_report import StaffDailyReport
+from app.services.report_service import ReportService
+from app.reports.staff_daily_report import StaffDailyReport
 from app.models.command_result import CommandResult
 import datetime as dt
 
