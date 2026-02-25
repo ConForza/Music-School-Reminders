@@ -9,7 +9,6 @@ class Lesson:
             date_raw = date_raw[:-5] + "+00:00"
 
         self.datetime = datetime.fromisoformat(date_raw)
-
         self.type_ = type_
         self.category = category
         self.duration = int(duration)

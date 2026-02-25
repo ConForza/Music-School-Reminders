@@ -112,7 +112,58 @@ Student: API Failure (api@example.com)
 
 - Business logic is designed to be testable via service-layer isolation.
 - External API calls are contained within `AcuityService`, allowing domain services to be tested independently using mocked responses.
-- Expanded Pytest coverage is planned as the next development phase.
+- The project includes a growing pytest suite covering domain and service logic.
+
+What is tested
+
+Domain models
+	•	Certificate.can_apply_to
+	•	Expiration handling
+	•	Remaining minutes
+	•	Appointment type validation
+	•	Student.unpaid_lessons
+	•	Correct filtering
+	•	Chronological ordering
+
+Service layer
+	•	CertificateService
+	•	Selects earliest valid certificate
+	•	Does not mutate state in preview mode
+	•	Handles API failures safely
+	•	Returns correct status when no valid certificate exists
+	•	InvoiceService
+	•	Calculates correct lesson totals
+	•	Applies correct pricing rules (30min / 60min / taster)
+	•	Propagates preview flag
+	•	Handles upstream API failures gracefully
+
+External API Isolation
+
+All tests isolate external dependencies using pytest.monkeypatch.
+	•	Acuity API calls are stubbed
+	•	Database repositories are mocked
+	•	No real network calls are made during testing
+
+This ensures:
+	•	Deterministic results
+	•	Fast execution
+	•	No dependency on API credentials
+	•	True unit-level isolation
+
+▶ Running Tests
+python -m pytest -v
+
+---
+
+📊 Test Coverage Philosophy
+
+The focus is on:
+	•	Business logic correctness
+	•	Failure handling
+	•	Side-effect safety (preview mode)
+	•	External API boundary isolation
+
+Integration tests and CI automation are planned for a later stage.
 
 ---
 
