@@ -46,9 +46,10 @@ class StaffRepository:
         conn = self.connection.create_connection()
         c = conn.cursor()
         c.execute("""
-            SELECT id, user_id, first_name, surname, role, acuity_calendar_id
-            FROM staff
-            ORDER BY surname, first_name
+            SELECT s.id, s.user_id, s.first_name, s.surname, s.role, s.acuity_calendar_id, u.discord_id
+            FROM staff s
+            JOIN users u ON u.id = s.user_id
+            ORDER BY s.surname, s.first_name
         """)
         rows = c.fetchall()
         conn.close()
@@ -60,6 +61,7 @@ class StaffRepository:
                 surname=r["surname"],
                 role=r["role"],
                 acuity_calendar_id=r["acuity_calendar_id"],
+                discord_id=r["discord_id"]
             )
             for r in rows
         ]
@@ -68,9 +70,10 @@ class StaffRepository:
         conn = self.connection.create_connection()
         c = conn.cursor()
         c.execute("""
-            SELECT id, user_id, first_name, surname, role, acuity_calendar_id
-            FROM staff
-            WHERE id = ?
+            SELECT s.id, s.user_id, s.first_name, s.surname, s.role, s.acuity_calendar_id, u.discord_id
+            FROM staff s
+            JOIN users u ON u.id = s.user_id
+            WHERE s.id = ?
         """, (staff_id,))
         r = c.fetchone()
         conn.close()
@@ -81,6 +84,7 @@ class StaffRepository:
                 first_name=r["first_name"],
                 surname=r["surname"],
                 role=r["role"],
-                acuity_calendar_id=r["acuity_calendar_id"]
+                acuity_calendar_id=r["acuity_calendar_id"],
+                discord_id=r["discord_id"]
             )
         )

@@ -1,7 +1,8 @@
 import discord
 from discord import app_commands
+from discord.ui import View, button
 import asyncio
-from app.config import TEST_TOKEN
+from app.config import TEST_TOKEN, INVOICE_CHANNEL_ID
 from app.adapters.discord.discord_adapter import DiscordAdapter
 from app.services.command_service import CommandService
 from app.services.command_renderer import CommandRenderer
@@ -28,6 +29,41 @@ class MusicSchoolBot(discord.Client):
 
 
 bot = MusicSchoolBot()
+
+class InvoicePreviewView(View):
+    def __init__(self, invoice_text: str):
+        super().__init__(timeout=300)
+        self.invoice_text = invoice_text
+
+    @button(label="Send invoice", style=discord.ButtonStyle.primary)
+    async def send_invoice(self, interaction: discord.Interaction, button: discord.ui.Button):
+        channel = interaction.client.get_channel(INVOICE_CHANNEL_ID)
+
+        if channel is None:
+            await interaction.response.edit_message(
+                content="❌ Invoice channel not configured. Please contact an admin.",
+                view=None
+            )
+            return
+
+        await channel.send(self.invoice_text)
+
+        try:
+            await interaction.user.send(self.invoice_text)
+        except discord.Forbidden:
+            pass
+
+        await interaction.response.edit_message(
+            content="✅ Invoice sent.",
+            view=None
+        )
+
+    @button(label="Cancel", style=discord.ButtonStyle.secondary)
+    async def cancel(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.edit_message(
+            content="❌ Invoice cancelled.",
+            view=None
+        )
 
 def chunk_text(text: str, size: int = DISCORD_MAX):
     for i in range(0, len(text), size):
@@ -300,7 +336,7 @@ async def generate_invoice(
         staff_id: int | None = None,
         preview: bool = False
 ):
-    await interaction.response.defer(thinking=True)
+    await interaction.response.defer(thinking=True, ephemeral=True)
 
     options = {
         "date_from": date_from,
@@ -318,7 +354,28 @@ async def generate_invoice(
         "options": options,
     }
 
-    await run_and_send(interaction, payload, empty_message="No invoice details found")
+    request = bot.adapter.to_command_request(payload)
+    response = await asyncio.to_thread(run_pipeline_from_request, bot, request)
+
+    invoice_text = ""
+    for msg in (response.messages or []):
+        body = (msg.get("body", "") or "").strip()
+        if not body:
+            continue
+        invoice_text = body
+        break
+
+    if not invoice_text:
+        await interaction.followup.send("No invoice details found.", ephemeral=True)
+        return
+
+    view = InvoicePreviewView(invoice_text=invoice_text)
+
+    await interaction.followup.send(
+        content=f"Here is your invoice preview\n\n{invoice_text}",
+        view=view,
+        ephemeral=True,
+    )
 
 @lessons_remaining.autocomplete("instrument")
 async def lessons_remaining_instrument_autocomplete(

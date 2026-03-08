@@ -13,7 +13,7 @@ class DailyRunnerService:
         self.report_service = ReportService()
 
     def run_daily(self, staff_members, source=None, preview: bool = False):
-        today_date = (dt.datetime.now() + dt.timedelta(days=0)).strftime("%B %d, %Y")
+        today_date = (dt.datetime.now() + dt.timedelta(days=1)).strftime("%B %d, %Y")
 
         staff_reports = []
         errors = []

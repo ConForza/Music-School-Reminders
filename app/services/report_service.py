@@ -13,6 +13,9 @@ class ReportService:
         report = ""
         if preview:
             report += ReportService.BANNER
+        else:
+            if staff_report.staff.discord_id is not None:
+                report += f"<@{staff_report.staff.discord_id}>\n"
 
         report += \
             f"**DAILY STAFF SUMMARY**\n👩‍🏫 **{staff_report.staff.name}**\n\n"
